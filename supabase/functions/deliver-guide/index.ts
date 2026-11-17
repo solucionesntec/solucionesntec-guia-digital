@@ -1,7 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  // CORS requires an origin only (scheme + host), while SITE_URL retains the full Pages path for redirects.
   "Access-Control-Allow-Origin": Deno.env.get("SITE_URL") ? new URL(Deno.env.get("SITE_URL")!).origin : "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -9,7 +8,6 @@ const corsHeaders = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-// All seven files are stored in the private "guias" bucket.
 const GUIDE_FILES = [
   { path: "01_Guia_Profesional_Seguridad_Electronica_actualizada.pdf", name: "Guía principal: El negocio de la seguridad electrónica" },
   { path: "02_Checklist_Instalador_Profesional.pdf", name: "Bono 1: Checklist del instalador profesional" },
@@ -20,32 +18,173 @@ const GUIDE_FILES = [
   { path: "07_IA_para_Instaladores_Prompts_ChatGPT.pdf", name: "Bono 6: IA para instaladores — prompts de ChatGPT" },
 ];
 
+async function reconcileApprovedPayment(
+  supabase: ReturnType<typeof createClient>,
+  order: {
+    id: string;
+    status: string;
+    buyer_email: string;
+    amount: number;
+    currency: string;
+    mp_preference_id: string | null;
+    mp_payment_id: string | null;
+  },
+  paymentId: string,
+) {
+  const token = Deno.env.get("MP_ACCESS_TOKEN") || "";
+  if (!token) {
+    return { ok: false, status: 503, error: "No está configurada la validación de pagos." };
+  }
+
+  const paymentResponse = await fetch(
+    "https://api.mercadopago.com/v1/payments/" + encodeURIComponent(paymentId),
+    { headers: { Authorization: "Bearer " + token } },
+  );
+  const payment = await paymentResponse.json().catch(() => ({}));
+
+  if (paymentResponse.status === 404) {
+    return { ok: false, status: 202, error: "Pago pendiente de confirmación." };
+  }
+  if (!paymentResponse.ok) {
+    console.error("Payment verification failed", { status: paymentResponse.status });
+    return { ok: false, status: 502, error: "No se pudo verificar el pago con Mercado Pago." };
+  }
+  if (String(payment.status || "").toLowerCase() !== "approved") {
+    return { ok: false, status: 202, error: "Pago pendiente de confirmación." };
+  }
+
+  const reference = String(payment.external_reference || payment.metadata?.order_id || "");
+  if (reference !== order.id) {
+    console.warn("Payment/order reference mismatch", { orderId: order.id, paymentId });
+    return { ok: false, status: 422, error: "El pago no corresponde a este pedido." };
+  }
+  if (payment.currency_id !== order.currency || Number(payment.transaction_amount) !== Number(order.amount)) {
+    console.warn("Payment amount/currency mismatch", {
+      orderId: order.id,
+      paymentId,
+      currency: payment.currency_id,
+      amount: payment.transaction_amount,
+    });
+    return { ok: false, status: 422, error: "El importe o la moneda del pago no coinciden con el pedido." };
+  }
+  if (order.mp_payment_id && String(order.mp_payment_id) !== String(payment.id)) {
+    return { ok: false, status: 409, error: "El pedido ya está asociado a otro pago." };
+  }
+  if (
+    order.mp_preference_id &&
+    payment.preference_id &&
+    String(order.mp_preference_id) !== String(payment.preference_id)
+  ) {
+    console.warn("Payment/preference mismatch", { orderId: order.id, paymentId });
+    return { ok: false, status: 422, error: "La preferencia del pago no coincide con el pedido." };
+  }
+
+  const accountResponse = await fetch("https://api.mercadopago.com/users/me", {
+    headers: { Authorization: "Bearer " + token },
+  });
+  const account = await accountResponse.json().catch(() => ({}));
+  if (!accountResponse.ok || !account.id) {
+    console.error("Mercado Pago account verification failed", { status: accountResponse.status });
+    return { ok: false, status: 502, error: "No se pudo validar la cuenta receptora del pago." };
+  }
+  if (!payment.collector_id || String(payment.collector_id) !== String(account.id)) {
+    console.warn("Payment collector mismatch", { orderId: order.id, paymentId });
+    return { ok: false, status: 422, error: "El pago no fue recibido por la cuenta configurada." };
+  }
+
+  const now = new Date().toISOString();
+  const { error: updateError } = await supabase
+    .from("orders")
+    .update({
+      status: "approved",
+      mp_payment_id: String(payment.id),
+      approved_at: now,
+      updated_at: now,
+    })
+    .eq("id", order.id)
+    .in("status", ["pending", "approved"]);
+
+  if (updateError) {
+    console.error("Could not approve verified order", updateError);
+    return { ok: false, status: 500, error: "Se verificó el pago, pero no se pudo actualizar el pedido." };
+  }
+
+  // The email script is idempotent; a webhook and this fallback can safely race.
+  const appsScriptUrl = Deno.env.get("APPS_SCRIPT_URL") || "";
+  const appsScriptSecret = Deno.env.get("APPS_SCRIPT_SECRET") || "";
+  if (appsScriptUrl && appsScriptSecret) {
+    try {
+      const emailResponse = await fetch(appsScriptUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          secret: appsScriptSecret,
+          email: order.buyer_email,
+          order_id: order.id,
+        }),
+        redirect: "follow",
+      });
+      const emailResult = await emailResponse.json().catch(() => null);
+      if (!emailResult || emailResult.ok !== true) {
+        console.error("Purchase email fallback failed", {
+          httpStatus: emailResponse.status,
+          appError: emailResult?.error || "Invalid response",
+        });
+      }
+    } catch (emailError) {
+      console.error("Purchase email fallback request failed", emailError);
+    }
+  }
+
+  return { ok: true, status: 200, error: "" };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Método no permitido." }, 405);
+
   try {
-    const { order_id, email } = await req.json();
+    const body = await req.json();
+    const order_id = body?.order_id;
+    const email = body?.email;
+    const payment_id = typeof body?.payment_id === "string" || typeof body?.payment_id === "number"
+      ? String(body.payment_id).trim()
+      : "";
+
     if (typeof order_id !== "string" || typeof email !== "string") {
       return json({ error: "Pedido o correo inválido." }, 400);
     }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
-    const { data: order, error } = await supabase.from("orders")
-      .select("id,status,buyer_email")
+    const { data: order, error } = await supabase
+      .from("orders")
+      .select("id,status,buyer_email,amount,currency,mp_preference_id,mp_payment_id")
       .eq("id", order_id)
       .maybeSingle();
+
     if (error || !order) return json({ error: "No encontramos ese pedido." }, 404);
-    if (order.buyer_email.toLowerCase() !== email.trim().toLowerCase()) {
+    if (String(order.buyer_email || "").toLowerCase() !== email.trim().toLowerCase()) {
       return json({ error: "El correo no coincide con el de la compra." }, 403);
     }
-    if (order.status !== "approved") return json({ error: "Pago pendiente de confirmación." }, 202);
+    if (order.status !== "approved") {
+      if (order.status !== "pending") {
+        return json({ error: "Este pedido no está habilitado para la entrega." }, 409);
+      }
+      if (!payment_id) {
+        return json({ error: "Pago pendiente de confirmación." }, 202);
+      }
+
+      const verification = await reconcileApprovedPayment(supabase, order, payment_id);
+      if (!verification.ok) {
+        return json({ error: verification.error }, verification.status);
+      }
+    }
 
     const downloads = [];
     for (const file of GUIDE_FILES) {
-      // Some uploads were stored with a duplicated .pdf suffix. Try the canonical
-      // filename first, then the duplicated suffix, without making the bucket public.
       const candidates = [file.path, `${file.path}.pdf`];
       let signedUrl: string | null = null;
       let resolvedPath: string | null = null;
@@ -68,6 +207,7 @@ Deno.serve(async (req) => {
       }
       downloads.push({ name: file.name, file_name: resolvedPath, download_url: signedUrl });
     }
+
     return json({ downloads, expires_in_seconds: 1200 });
   } catch (error) {
     console.error(error);
