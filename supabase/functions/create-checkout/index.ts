@@ -54,7 +54,8 @@ Deno.serve(async (req) => {
         pending: SITE_URL + "/?status=pending&external_reference=" + order.id
       },
       auto_return: "approved",
-      notification_url: SUPABASE_URL + "/functions/v1/mp-webhook",
+      // Use the app-level signed Webhook configured in Mercado Pago Developers.
+      // Do not set notification_url here: per-preference URLs override that configuration and use legacy IPN.
       statement_descriptor: "SOLUCIONES NTEC"
     };
 
