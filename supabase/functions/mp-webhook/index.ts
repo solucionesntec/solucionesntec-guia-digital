@@ -196,6 +196,11 @@ Deno.serve(async (req) => {
         currency: payment.currency_id,
         amount: payment.transaction_amount
       });
+      console.warn("Webhook rejected: payment amount/currency mismatch", {
+        paymentId: String(paymentId),
+        currency: payment.currency_id ?? null,
+        amount: payment.transaction_amount ?? null
+      });
       return new Response("Amount or currency mismatch", { status: 422 });
     }
 
@@ -203,15 +208,29 @@ Deno.serve(async (req) => {
       payment.external_reference || payment.metadata?.order_id || ""
     );
     if (!UUID_RE.test(paymentExternalReference)) {
+      console.warn("Webhook rejected: invalid payment external reference", {
+        paymentId: String(paymentId),
+        hasExternalReference: Boolean(paymentExternalReference)
+      });
       return new Response("Invalid payment order reference", { status: 422 });
     }
 
     const orderId = expectedOrderId || paymentExternalReference;
     if (paymentExternalReference !== orderId) {
+      console.warn("Webhook rejected: merchant-order/payment reference mismatch", {
+        paymentId: String(paymentId),
+        expectedOrderId: orderId,
+        paymentReference: paymentExternalReference
+      });
       return new Response("Merchant order and payment reference mismatch", { status: 422 });
     }
 
     if (expectedPreferenceId && String(payment.preference_id || "") !== expectedPreferenceId) {
+      console.warn("Webhook rejected: merchant-order/payment preference mismatch", {
+        paymentId: String(paymentId),
+        expectedPreferenceId,
+        paymentPreferenceId: String(payment.preference_id || "")
+      });
       return new Response("Merchant order and payment preference mismatch", { status: 422 });
     }
 
@@ -228,9 +247,19 @@ Deno.serve(async (req) => {
 
     if (orderError || !order) return new Response("Order not found", { status: 404 });
     if (order.amount !== 14900 || order.currency !== "ARS") {
+      console.warn("Webhook rejected: database order amount/currency mismatch", {
+        orderId,
+        orderAmount: order.amount,
+        orderCurrency: order.currency
+      });
       return new Response("Order amount or currency mismatch", { status: 422 });
     }
     if (!payment.preference_id || String(payment.preference_id) !== String(order.mp_preference_id)) {
+      console.warn("Webhook rejected: database/payment preference mismatch", {
+        orderId,
+        paymentPreferenceId: String(payment.preference_id || ""),
+        orderPreferenceId: String(order.mp_preference_id || "")
+      });
       return new Response("Preference mismatch", { status: 422 });
     }
     if (order.status !== "pending" && order.status !== "approved") {
@@ -247,6 +276,11 @@ Deno.serve(async (req) => {
     }
     const account = accountResult.data;
     if (!account.id || String(payment.collector_id) !== String(account.id)) {
+      console.warn("Webhook rejected: collector/account mismatch", {
+        paymentId: String(paymentId),
+        paymentCollectorId: String(payment.collector_id || ""),
+        tokenAccountId: String(account.id || "")
+      });
       return new Response("Collector mismatch", { status: 422 });
     }
 
