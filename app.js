@@ -31,7 +31,10 @@
       body: JSON.stringify(payload)
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || "No se pudo completar la solicitud.");
+    // Supabase puede responder HTTP 202 cuando el pago sigue pendiente.
+    // Aunque 202 es una respuesta HTTP exitosa, el cuerpo contiene el motivo
+    // y deliverWhenApproved necesita detectarlo para seguir reintentando.
+    if (!response.ok || data.error) throw new Error(data.error || "No se pudo completar la solicitud.");
     return data;
   }
 
