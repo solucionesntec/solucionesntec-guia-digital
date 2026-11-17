@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
     }
 
     const orderId = String(payment.external_reference || payment.metadata?.order_id || "");
-    if (!/^[0-9a-f-]{36}$/i.test(orderId)) return new Response("Invalid order reference", { status: 422 });
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(orderId)) return new Response("Invalid order reference", { status: 422 });
 
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: order, error: orderError } = await supabase.from("orders")
@@ -88,6 +88,25 @@ Deno.serve(async (req) => {
       .eq("id", orderId).maybeSingle();
     if (orderError || !order) return new Response("Order not found", { status: 404 });
     if (order.amount !== 14900 || order.currency !== "ARS") return new Response("Order mismatch", { status: 422 });
+    if (!payment.preference_id || String(payment.preference_id) !== String(order.mp_preference_id)) {
+      return new Response("Preference mismatch", { status: 422 });
+    }
+    if (order.status !== "pending" && order.status !== "approved") {
+      return new Response("Order is not payable", { status: 409 });
+    }
+
+    // Verify that the payment was collected by the Mercado Pago account owning this access token.
+    const accountResponse = await fetch("https://api.mercadopago.com/users/me", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    if (!accountResponse.ok) {
+      console.error("Mercado Pago account verification failed", { status: accountResponse.status });
+      throw new Error("No se pudo verificar la cuenta receptora.");
+    }
+    const account = await accountResponse.json();
+    if (!account.id || String(payment.collector_id) !== String(account.id)) {
+      return new Response("Collector mismatch", { status: 422 });
+    }
     if (!order.buyer_email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(order.buyer_email))) {
       return new Response("Order email is invalid", { status: 422 });
     }
