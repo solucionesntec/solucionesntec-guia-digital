@@ -4,8 +4,9 @@
   const emailInput = document.getElementById("buyer-email");
   const buyButton = document.getElementById("buy-button");
   const params = new URLSearchParams(window.location.search);
-  const orderId = params.get("external_reference") || params.get("order_id");
+  const orderId = params.get("access") || params.get("external_reference") || params.get("order_id");
   const paymentStatus = params.get("status");
+  const isAccessLink = Boolean(params.get("access"));
 
   function show(message, isError = false) {
     if (!statusBox) return;
@@ -35,12 +36,12 @@
   }
 
   async function deliverWhenApproved(id, email) {
-    show("Estamos verificando tu pago. Esto puede tardar unos segundos…");
+    show("Estamos validando tu compra y preparando los materiales…");
     for (let attempt = 0; attempt < 20; attempt++) {
       try {
         const result = await callFunction("deliver-guide", { order_id: id, email });
         if (Array.isArray(result.downloads) && result.downloads.length === 7) {
-          show("Pago confirmado. Ya podés descargar los siete archivos de tu compra.");
+          show("Acceso validado. Ya podés descargar los siete archivos de tu compra.");
           const list = document.createElement("div");
           list.style.display = "grid";
           list.style.gap = "10px";
@@ -74,12 +75,23 @@
     show("Todavía no recibimos la confirmación del pago. No vuelvas a pagar. Actualizá esta página en un minuto o escribinos a contacto@solucionesntec.com.ar.");
   }
 
-  if (paymentStatus === "success" && orderId) {
+  if (isAccessLink) {
+    show("Ingresá el mismo correo electrónico que utilizaste al realizar la compra.");
+    if (emailInput) {
+      emailInput.value = "";
+      emailInput.placeholder = "Correo usado al comprar";
+      emailInput.autocomplete = "email";
+    }
+    if (buyButton) {
+      buyButton.textContent = "Acceder a mis 7 materiales";
+      buyButton.disabled = false;
+    }
+  } else if (paymentStatus === "success" && orderId) {
     const email = localStorage.getItem("ntec_buyer_email") || sessionStorage.getItem("ntec_buyer_email");
     if (email && validConfig()) {
       deliverWhenApproved(orderId, email);
     } else {
-      show("Ingresá el mismo correo que usaste al pagar y tocá el botón de recuperación para validar tu compra.", true);
+      show("Ingresá el mismo correo que usaste al pagar y tocá el botón para recuperar tu compra.", true);
       if (emailInput) {
         emailInput.value = "";
         emailInput.placeholder = "Correo usado al pagar";
@@ -99,7 +111,7 @@
     buyButton.addEventListener("click", async () => {
       const email = (emailInput?.value || "").trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        show("Ingresá un correo electrónico válido para recibir el acceso.", true);
+        show("Ingresá un correo electrónico válido.", true);
         emailInput?.focus();
         return;
       }
@@ -108,12 +120,12 @@
         return;
       }
       buyButton.disabled = true;
-      if (paymentStatus === "success" && orderId) {
-        sessionStorage.setItem("ntec_buyer_email", email);
-        localStorage.setItem("ntec_buyer_email", email);
+
+      if (isAccessLink || (paymentStatus === "success" && orderId)) {
         deliverWhenApproved(orderId, email);
         return;
       }
+
       buyButton.textContent = "Preparando pago…";
       try {
         sessionStorage.setItem("ntec_buyer_email", email);
