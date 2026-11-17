@@ -225,11 +225,15 @@ Deno.serve(async (req) => {
       return new Response("Merchant order and payment reference mismatch", { status: 422 });
     }
 
-    if (expectedPreferenceId && String(payment.preference_id || "") !== expectedPreferenceId) {
+    // The Payments API may omit preference_id on the payment resource.
+    // When present, verify it; when absent, the merchant-order event below
+    // provides the preference ID used for the checkout.
+    if (expectedPreferenceId && payment.preference_id &&
+      String(payment.preference_id) !== expectedPreferenceId) {
       console.warn("Webhook rejected: merchant-order/payment preference mismatch", {
         paymentId: String(paymentId),
         expectedPreferenceId,
-        paymentPreferenceId: String(payment.preference_id || "")
+        paymentPreferenceId: String(payment.preference_id)
       });
       return new Response("Merchant order and payment preference mismatch", { status: 422 });
     }
@@ -254,11 +258,23 @@ Deno.serve(async (req) => {
       });
       return new Response("Order amount or currency mismatch", { status: 422 });
     }
-    if (!payment.preference_id || String(payment.preference_id) !== String(order.mp_preference_id)) {
+    if (!order.mp_preference_id) {
+      console.warn("Webhook rejected: order has no stored preference ID", { orderId });
+      return new Response("Order preference is missing", { status: 422 });
+    }
+    if (expectedPreferenceId && String(order.mp_preference_id) !== expectedPreferenceId) {
+      console.warn("Webhook rejected: merchant-order/database preference mismatch", {
+        orderId,
+        merchantOrderPreferenceId: expectedPreferenceId,
+        orderPreferenceId: String(order.mp_preference_id)
+      });
+      return new Response("Merchant order and database preference mismatch", { status: 422 });
+    }
+    if (payment.preference_id && String(payment.preference_id) !== String(order.mp_preference_id)) {
       console.warn("Webhook rejected: database/payment preference mismatch", {
         orderId,
-        paymentPreferenceId: String(payment.preference_id || ""),
-        orderPreferenceId: String(order.mp_preference_id || "")
+        paymentPreferenceId: String(payment.preference_id),
+        orderPreferenceId: String(order.mp_preference_id)
       });
       return new Response("Preference mismatch", { status: 422 });
     }
