@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: order, error: orderError } = await supabase.from("orders")
-      .select("id, amount, currency, status, buyer_email, mp_payment_id")
+      .select("id, amount, currency, status, buyer_email, mp_payment_id, mp_preference_id")
       .eq("id", orderId).maybeSingle();
     if (orderError || !order) return new Response("Order not found", { status: 404 });
     if (order.amount !== 14900 || order.currency !== "ARS") return new Response("Order mismatch", { status: 422 });
