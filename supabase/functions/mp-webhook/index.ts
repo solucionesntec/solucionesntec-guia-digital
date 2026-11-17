@@ -10,22 +10,45 @@ function constantTimeEqual(a: string, b: string) {
 async function validSignature(req: Request, dataId: string, secret: string) {
   const signature = req.headers.get("x-signature") || "";
   const requestId = req.headers.get("x-request-id") || "";
-  const parts = Object.fromEntries(signature.split(",").map(p => p.trim().split("=", 2)));
-  const ts = parts.ts;
-  const receivedHash = parts.v1;
-  if (!ts || !receivedHash || !requestId || !dataId) return false;
-  const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
-  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const fields: Record<string, string> = {};
+  for (const part of signature.split(",")) {
+    const separator = part.indexOf("=");
+    if (separator > 0) {
+      const key = part.slice(0, separator).trim();
+      const value = part.slice(separator + 1).trim();
+      fields[key] = value;
+    }
+  }
+  const ts = fields.ts;
+  const receivedHash = fields.v1;
+  if (!ts || !receivedHash || !requestId || !dataId) {
+    console.warn("Webhook signature rejected: missing signature fields", {
+      hasTimestamp: Boolean(ts), hasHash: Boolean(receivedHash),
+      hasRequestId: Boolean(requestId), hasDataId: Boolean(dataId)
+    });
+    return false;
+  }
+  // Mercado Pago's signature manifest uses the payment ID in lowercase.
+  const manifest = `id:${dataId.toLowerCase()};request-id:${requestId};ts:${ts};`;
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret.trim()),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
   const digest = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(manifest));
-  const expected = Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
-  return constantTimeEqual(expected, receivedHash);
+  const expected = Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, "0")).join("");
+  const valid = constantTimeEqual(expected, receivedHash.toLowerCase());
+  if (!valid) console.warn("Webhook signature rejected: HMAC mismatch");
+  return valid;
 }
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
   try {
     const url = new URL(req.url);
-    const dataId = url.searchParams.get("data.id") || url.searchParams.get("id") || "";
+    const dataId = (url.searchParams.get("data.id") || url.searchParams.get("id") || "").trim();
     const secret = Deno.env.get("MP_WEBHOOK_SECRET") || "";
     if (!secret || !(await validSignature(req, dataId, secret))) {
       return new Response("Invalid signature", { status: 401 });
