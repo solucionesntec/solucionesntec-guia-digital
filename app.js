@@ -108,6 +108,12 @@
         return;
       }
       buyButton.disabled = true;
+      if (paymentStatus === "success" && orderId) {
+        sessionStorage.setItem("ntec_buyer_email", email);
+        localStorage.setItem("ntec_buyer_email", email);
+        deliverWhenApproved(orderId, email);
+        return;
+      }
       buyButton.textContent = "Preparando pago…";
       try {
         sessionStorage.setItem("ntec_buyer_email", email);
