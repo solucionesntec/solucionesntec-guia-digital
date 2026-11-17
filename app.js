@@ -59,6 +59,7 @@
           });
           statusBox.appendChild(list);
           sessionStorage.removeItem("ntec_buyer_email");
+          localStorage.removeItem("ntec_buyer_email");
           return;
         }
         throw new Error("No se pudieron preparar los siete archivos.");
@@ -74,9 +75,20 @@
   }
 
   if (paymentStatus === "success" && orderId) {
-    const email = sessionStorage.getItem("ntec_buyer_email");
-    if (email && validConfig()) deliverWhenApproved(orderId, email);
-    else show("Volvé a ingresar el correo usado al comprar y contactanos para validar la entrega.");
+    const email = localStorage.getItem("ntec_buyer_email") || sessionStorage.getItem("ntec_buyer_email");
+    if (email && validConfig()) {
+      deliverWhenApproved(orderId, email);
+    } else {
+      show("Ingresá el mismo correo que usaste al pagar y tocá el botón de recuperación para validar tu compra.", true);
+      if (emailInput) {
+        emailInput.value = "";
+        emailInput.placeholder = "Correo usado al pagar";
+      }
+      if (buyButton) {
+        buyButton.textContent = "Recuperar mi compra";
+        buyButton.disabled = false;
+      }
+    }
   } else if (paymentStatus === "failure") {
     show("El pago no se completó. Podés volver a intentarlo cuando quieras.", true);
   } else if (paymentStatus === "pending") {
@@ -99,6 +111,7 @@
       buyButton.textContent = "Preparando pago…";
       try {
         sessionStorage.setItem("ntec_buyer_email", email);
+        localStorage.setItem("ntec_buyer_email", email);
         const result = await callFunction("create-checkout", { email });
         if (!result.init_point) throw new Error("Mercado Pago no devolvió el enlace de pago.");
         window.location.assign(result.init_point);
