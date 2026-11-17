@@ -86,7 +86,7 @@
   if (buyButton) {
     buyButton.addEventListener("click", async () => {
       const email = (emailInput?.value || "").trim().toLowerCase();
-      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         show("Ingresá un correo electrónico válido para recibir el acceso.", true);
         emailInput?.focus();
         return;
