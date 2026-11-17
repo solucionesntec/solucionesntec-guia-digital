@@ -39,19 +39,29 @@
     for (let attempt = 0; attempt < 20; attempt++) {
       try {
         const result = await callFunction("deliver-guide", { order_id: id, email });
-        if (result.download_url) {
-          show("Pago confirmado. Tu guía está lista.");
-          const link = document.createElement("a");
-          link.href = result.download_url;
-          link.textContent = "Descargar mi guía PDF";
-          link.className = "btn primary";
-          link.style.marginTop = "14px";
-          link.style.display = "inline-block";
-          statusBox.appendChild(document.createElement("br"));
-          statusBox.appendChild(link);
+        if (Array.isArray(result.downloads) && result.downloads.length === 7) {
+          show("Pago confirmado. Ya podés descargar los siete archivos de tu compra.");
+          const list = document.createElement("div");
+          list.style.display = "grid";
+          list.style.gap = "10px";
+          list.style.marginTop = "18px";
+          result.downloads.forEach((file, index) => {
+            const link = document.createElement("a");
+            link.href = file.download_url;
+            link.textContent = (index + 1) + ". " + file.name + " — Descargar PDF";
+            link.className = "btn primary";
+            link.style.display = "block";
+            link.style.textAlign = "left";
+            link.style.overflowWrap = "anywhere";
+            link.target = "_blank";
+            link.rel = "noopener";
+            list.appendChild(link);
+          });
+          statusBox.appendChild(list);
           sessionStorage.removeItem("ntec_buyer_email");
           return;
         }
+        throw new Error("No se pudieron preparar los siete archivos.");
       } catch (error) {
         if (!String(error.message).toLowerCase().includes("pendiente")) {
           show(error.message, true);
@@ -76,7 +86,7 @@
   if (buyButton) {
     buyButton.addEventListener("click", async () => {
       const email = (emailInput?.value || "").trim().toLowerCase();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
         show("Ingresá un correo electrónico válido para recibir el acceso.", true);
         emailInput?.focus();
         return;
