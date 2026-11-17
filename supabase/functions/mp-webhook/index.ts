@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
     if (!account.id || String(payment.collector_id) !== String(account.id)) {
       return new Response("Collector mismatch", { status: 422 });
     }
-    if (!order.buyer_email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(order.buyer_email))) {
+    if (!order.buyer_email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(order.buyer_email))) {
       return new Response("Order email is invalid", { status: 422 });
     }
     if (order.mp_payment_id && String(order.mp_payment_id) !== String(payment.id)) {
