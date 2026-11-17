@@ -63,7 +63,16 @@ Deno.serve(async (req) => {
       headers: { "Authorization": "Bearer " + token }
     });
     const payment = await paymentResponse.json();
-    if (!paymentResponse.ok) throw new Error("No se pudo consultar el pago en Mercado Pago.");
+    // Mercado Pago webhook simulator sends a synthetic payment ID (for example 123456).
+    // A 404 for that synthetic ID is an expected test result, not a server failure.
+    if (paymentResponse.status === 404) {
+      console.info("Webhook acknowledged: payment ID not found (likely simulator payload).", { dataId });
+      return new Response("Payment not found; notification acknowledged", { status: 200 });
+    }
+    if (!paymentResponse.ok) {
+      console.error("Mercado Pago payment lookup failed", { status: paymentResponse.status });
+      throw new Error("No se pudo consultar el pago en Mercado Pago.");
+    }
 
     if (payment.status !== "approved") return new Response("Payment not approved", { status: 200 });
     if (payment.currency_id !== "ARS" || Number(payment.transaction_amount) !== 14900) {
