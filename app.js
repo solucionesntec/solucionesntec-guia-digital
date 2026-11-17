@@ -38,11 +38,13 @@
     return data;
   }
 
-  async function deliverWhenApproved(id, email) {
+  async function deliverWhenApproved(id, email, paymentId = "") {
     show("Estamos validando tu compra y preparando los materiales…");
     for (let attempt = 0; attempt < 20; attempt++) {
       try {
-        const result = await callFunction("deliver-guide", { order_id: id, email });
+        const payload = { order_id: id, email };
+        if (paymentId) payload.payment_id = paymentId;
+        const result = await callFunction("deliver-guide", payload);
         if (Array.isArray(result.downloads) && result.downloads.length === 7) {
           show("Acceso validado. Ya podés descargar los siete archivos de tu compra.");
           const list = document.createElement("div");
@@ -92,7 +94,11 @@
   } else if (paymentStatus === "success" && orderId) {
     const email = localStorage.getItem("ntec_buyer_email") || sessionStorage.getItem("ntec_buyer_email");
     if (email && validConfig()) {
-      deliverWhenApproved(orderId, email);
+      deliverWhenApproved(
+        orderId,
+        email,
+        params.get("payment_id") || params.get("collection_id") || ""
+      );
     } else {
       show("Ingresá el mismo correo que usaste al pagar y tocá el botón para recuperar tu compra.", true);
       if (emailInput) {
@@ -125,7 +131,11 @@
       buyButton.disabled = true;
 
       if (isAccessLink || (paymentStatus === "success" && orderId)) {
-        deliverWhenApproved(orderId, email);
+        deliverWhenApproved(
+          orderId,
+          email,
+          params.get("payment_id") || params.get("collection_id") || ""
+        );
         return;
       }
 
