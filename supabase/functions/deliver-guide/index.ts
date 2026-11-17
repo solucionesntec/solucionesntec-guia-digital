@@ -44,13 +44,29 @@ Deno.serve(async (req) => {
 
     const downloads = [];
     for (const file of GUIDE_FILES) {
-      const { data, error: signError } = await supabase.storage.from("guias")
-        .createSignedUrl(file.path, 20 * 60, { download: file.path });
-      if (signError || !data?.signedUrl) {
-        console.error("Could not sign guide file:", file.path, signError);
+      // Some uploads were stored with a duplicated .pdf suffix. Try the canonical
+      // filename first, then the duplicated suffix, without making the bucket public.
+      const candidates = [file.path, `${file.path}.pdf`];
+      let signedUrl: string | null = null;
+      let resolvedPath: string | null = null;
+      let lastSignError: unknown = null;
+
+      for (const candidate of candidates) {
+        const { data, error: signError } = await supabase.storage.from("guias")
+          .createSignedUrl(candidate, 20 * 60, { download: file.path });
+        if (!signError && data?.signedUrl) {
+          signedUrl = data.signedUrl;
+          resolvedPath = candidate;
+          break;
+        }
+        lastSignError = signError;
+      }
+
+      if (!signedUrl || !resolvedPath) {
+        console.error("Could not sign guide file:", file.path, lastSignError);
         return json({ error: "No se pudo preparar la descarga de todos los materiales. Contactanos para recibir asistencia." }, 500);
       }
-      downloads.push({ name: file.name, file_name: file.path, download_url: data.signedUrl });
+      downloads.push({ name: file.name, file_name: resolvedPath, download_url: signedUrl });
     }
     return json({ downloads, expires_in_seconds: 1200 });
   } catch (error) {
