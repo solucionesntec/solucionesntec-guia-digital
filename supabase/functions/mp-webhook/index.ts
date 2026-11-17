@@ -84,19 +84,60 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: order, error: orderError } = await supabase.from("orders")
-      .select("id, amount, currency, status")
+      .select("id, amount, currency, status, buyer_email, mp_payment_id")
       .eq("id", orderId).maybeSingle();
     if (orderError || !order) return new Response("Order not found", { status: 404 });
     if (order.amount !== 14900 || order.currency !== "ARS") return new Response("Order mismatch", { status: 422 });
+    if (!order.buyer_email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(String(order.buyer_email))) {
+      return new Response("Order email is invalid", { status: 422 });
+    }
+    if (order.mp_payment_id && String(order.mp_payment_id) !== String(payment.id)) {
+      return new Response("Order already linked to another payment", { status: 409 });
+    }
 
-    const { error: updateError } = await supabase.from("orders").update({
-      status: "approved",
-      mp_payment_id: String(payment.id),
-      approved_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }).eq("id", orderId);
-    if (updateError) throw updateError;
+    if (order.status !== "approved") {
+      const now = new Date().toISOString();
+      const { error: updateError } = await supabase.from("orders").update({
+        status: "approved",
+        mp_payment_id: String(payment.id),
+        approved_at: now,
+        updated_at: now
+      }).eq("id", orderId);
+      if (updateError) throw updateError;
+    }
 
+    // Email delivery is idempotent in Apps Script. If this call fails, return
+    // 500 so Mercado Pago can retry the notification; duplicate sends are blocked.
+    const appsScriptUrl = Deno.env.get("APPS_SCRIPT_URL") || "";
+    const appsScriptSecret = Deno.env.get("APPS_SCRIPT_SECRET") || "";
+    if (!appsScriptUrl || !appsScriptSecret) {
+      console.error("Email delivery is not configured");
+      return new Response("Email delivery is not configured", { status: 500 });
+    }
+
+    const emailResponse = await fetch(appsScriptUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        secret: appsScriptSecret,
+        email: String(order.buyer_email),
+        order_id: orderId
+      }),
+      redirect: "follow"
+    });
+    const emailResult = await emailResponse.json().catch(() => null);
+    if (!emailResult || emailResult.ok !== true) {
+      console.error("Apps Script email delivery failed", {
+        httpStatus: emailResponse.status,
+        appError: emailResult?.error || "Invalid response"
+      });
+      return new Response("Email delivery failed; retry notification", { status: 500 });
+    }
+
+    console.info("Order approved and delivery email confirmed", {
+      orderId,
+      duplicateEmail: emailResult.duplicate === true
+    });
     return new Response("OK", { status: 200 });
   } catch (error) {
     console.error(error);
