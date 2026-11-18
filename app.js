@@ -46,7 +46,11 @@
         if (paymentId) payload.payment_id = paymentId;
         const result = await callFunction("deliver-guide", payload);
         if (Array.isArray(result.downloads) && result.downloads.length === 7) {
-          show("Acceso validado. Ya podés descargar los siete archivos de tu compra.");
+          if (result.email_sent) {
+            show("Compra validada. También enviamos un correo con los siete materiales. Revisá Recibidos y Spam.");
+          } else {
+            show("Compra validada. Podés descargar los siete materiales aquí. No pudimos enviar el correo automático: " + (result.email_error || "probá más tarde."));
+          }
           const list = document.createElement("div");
           list.style.display = "grid";
           list.style.gap = "10px";
@@ -77,7 +81,7 @@
       }
       await new Promise(resolve => setTimeout(resolve, 3000));
     }
-    show("Todavía no recibimos la confirmación del pago. No vuelvas a pagar. Actualizá esta página en un minuto o escribinos a contacto@solucionesntec.com.ar.");
+    show("Todavía no recibimos la confirmación del pago. No vuelvas a pagar. Actualizá esta página en un minuto o escribinos a solucionesntec@gmail.com.");
   }
 
   if (isAccessLink) {
