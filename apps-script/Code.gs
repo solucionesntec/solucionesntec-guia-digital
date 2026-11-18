@@ -64,12 +64,22 @@ function doPost(e) {
 
     const props = PropertiesService.getScriptProperties();
     const sentKey = SENT_PREFIX + orderId;
-    if (props.getProperty(sentKey)) {
+    const isRecovery = payload.resend === true;
+    const recoveryKey = "NTEC_RECOVERY_SENT_" + orderId;
+
+    if (isRecovery) {
+      const lastRecovery = Number(props.getProperty(recoveryKey) || 0);
+      if (lastRecovery && Date.now() - lastRecovery < 120000) {
+        return jsonOutput_({ ok: true, duplicate: true, throttled: true });
+      }
+    } else if (props.getProperty(sentKey)) {
       return jsonOutput_({ ok: true, duplicate: true });
     }
 
     const accessUrl = STORE_URL + "?access=" + encodeURIComponent(orderId);
-    const subject = "Tu compra está lista — Soluciones NTEC";
+    const subject = isRecovery
+      ? "Recuperá el acceso a tus materiales — Soluciones NTEC"
+      : "Tu compra está lista — Soluciones NTEC";
     const body =
       "¡Gracias por tu compra!\n\n" +
       "Ya podés acceder a los 7 materiales digitales de Soluciones NTEC.\n\n" +
@@ -100,7 +110,8 @@ function doPost(e) {
     });
 
     props.setProperty(sentKey, new Date().toISOString());
-    return jsonOutput_({ ok: true, duplicate: false });
+    if (isRecovery) props.setProperty(recoveryKey, String(Date.now()));
+    return jsonOutput_({ ok: true, duplicate: false, recovery: isRecovery });
   } catch (error) {
     console.error("NTEC email delivery error", error);
     return jsonOutput_({
