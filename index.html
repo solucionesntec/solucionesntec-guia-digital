@@ -63,6 +63,38 @@
 .recovery-status{max-width:680px;margin:14px auto 0;color:#f3d27d;font-size:1rem;overflow-wrap:anywhere}
 @media(max-width:680px){.access-section{padding:28px 0 34px}.access-panel{padding:25px 18px}.access-heading p{font-size:1.05rem}.access-form label{font-size:1.12rem}.access-form input{min-height:60px;font-size:1.1rem}.access-recovery{display:grid;grid-template-columns:1fr}.recovery-action{width:100%;white-space:normal}.access-buy{font-size:1.05rem}}
 
+
+/* Distinct buyer recovery and new-purchase panels */
+.recovery-section{padding:42px 0 34px;background:linear-gradient(180deg,#102844 0%,#09182a 100%);border-top:2px solid #e9b949;border-bottom:1px solid #39536f}
+.recovery-panel{max-width:920px;margin:0 auto;padding:clamp(28px,4vw,48px);background:linear-gradient(135deg,#1a3553,#10243b);border:3px solid #f0bd45;border-radius:22px;box-shadow:0 18px 48px rgba(0,0,0,.38);position:relative}
+.recovery-panel:before{content:"";position:absolute;left:0;top:0;bottom:0;width:9px;background:linear-gradient(#ffd66d,#ee8c27)}
+.recovery-head{text-align:center}
+.recovery-tag{display:inline-block;background:#ffd15b;color:#152238;border-radius:99px;padding:8px 18px;font-size:.9rem;font-weight:950;letter-spacing:.1em}
+.recovery-head h2{font-size:clamp(2.2rem,5vw,3.35rem);margin:16px 0 12px;color:#fff}
+.recovery-copy{max-width:730px;margin:0 auto;color:#e3ebf4;font-size:1.2rem;line-height:1.55}
+.recovery-form{max-width:690px;margin:28px auto 0;display:grid;gap:12px}
+.recovery-form label{display:block;color:#fff;font-weight:900;font-size:1.2rem}
+.recovery-form input{display:block;width:100%;min-height:68px;padding:16px 19px;background:#071426;color:#fff;border:2px solid #9aabc0;border-radius:12px;font:inherit;font-size:1.25rem}
+.recovery-form input:focus{outline:none;border-color:#ffd15b;box-shadow:0 0 0 4px rgba(255,209,91,.18)}
+.recovery-form input::placeholder{color:#899bb0}
+.recovery-action{width:100%;min-height:66px;background:#ffd15b;color:#172238;border:0;font-size:1.13rem;font-weight:950;letter-spacing:.015em}
+.recovery-action:hover{background:#ffe08b}
+.recovery-action:disabled{opacity:.65;cursor:wait}
+.recovery-status{max-width:690px;margin:16px auto 0;color:#ffe08b;font-size:1.05rem;font-weight:700;overflow-wrap:anywhere}
+.recovery-note{max-width:690px;margin:14px auto 0;color:#bdcadd;font-size:.95rem;text-align:center}
+.purchase-section{padding:58px 0;background:#071426}
+.purchase-panel{max-width:820px;margin:0 auto;text-align:center;padding:clamp(26px,4vw,42px);background:linear-gradient(135deg,#10243d,#173454);border:1px solid #55708d;border-radius:18px}
+.purchase-tag{display:inline-block;background:#213c5b;color:#f4cf70;border:1px solid #7c8fa6;border-radius:99px;padding:6px 14px;font-size:.8rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.purchase-panel h2{font-size:clamp(1.9rem,4vw,2.7rem);margin:14px 0 10px;color:#fff}
+.purchase-copy{max-width:650px;margin:0 auto;color:#cfdae7;font-size:1.1rem}
+.purchase-form{max-width:600px;margin:24px auto 0;text-align:left}
+.purchase-form label{display:block;color:#fff;font-size:1.08rem;font-weight:800;margin-bottom:9px}
+.purchase-form input{display:block;width:100%;min-height:60px;padding:14px 18px;border:1px solid #8da0b7;border-radius:10px;background:#071426;color:#fff;font:inherit;font-size:1.12rem}
+.purchase-form input:focus{outline:none;border-color:#e9b949;box-shadow:0 0 0 3px rgba(233,185,73,.16)}
+.purchase-form button{width:100%;min-height:60px;margin-top:14px;font-size:1.1rem}
+.purchase-note{color:#b8c6d6;font-size:.9rem;margin:16px auto 0}
+@media(max-width:650px){.recovery-section{padding:28px 0}.recovery-panel{padding:26px 18px}.recovery-panel:before{width:6px}.recovery-copy{font-size:1.05rem}.recovery-form label{font-size:1.08rem}.recovery-form input{min-height:60px;font-size:1.05rem}.recovery-action{font-size:1rem;min-height:62px;white-space:normal}.purchase-section{padding:38px 0}.purchase-panel{padding:25px 18px}}
+
 </style>
 </head>
 <body>
@@ -77,42 +109,25 @@
 <div class="price">Acceso digital completo <strong>$14.900 ARS</strong></div>
 </div></section>
 
-<section id="comprar" class="access-section">
+
+<section id="recuperar" class="recovery-section">
   <div class="wrap">
-    <div class="access-panel">
-      <div class="access-heading">
-        <span class="access-tag">Acceso digital · Soluciones NTEC</span>
-        <h2>Ingresá tu correo electrónico</h2>
-        <p>Usá una dirección de correo válida. Con ella vas a poder comprar el pack o recuperar tus materiales si ya realizaste el pago.</p>
+    <div class="recovery-panel">
+      <div class="recovery-head">
+        <span class="recovery-tag">¿YA COMPRASTE?</span>
+        <h2>Recuperá tus 7 materiales</h2>
+        <p class="recovery-copy">Esta opción es solamente para quienes ya pagaron y quieren volver a descargar la guía y los seis bonos. No necesitás volver a comprar.</p>
       </div>
-
-      <div class="access-form">
-        <label for="buyer-email">Tu correo electrónico</label>
-        <input id="buyer-email" type="email" autocomplete="email" placeholder="tu@email.com" required>
+      <div class="recovery-form">
+        <label for="recovery-email">Ingresá el correo que usaste al realizar la compra</label>
+        <input id="recovery-email" type="email" autocomplete="email" placeholder="El mismo correo que usaste al pagar" required>
+        <button id="recovery-button" class="btn recovery-action" type="button">YA COMPRÉ · ENVIAR MI ENLACE DE ACCESO</button>
       </div>
-
-      <div class="access-actions">
-        <button id="buy-button" class="btn primary access-buy" type="button">Comprar los 7 materiales · $14.900 ARS</button>
-      </div>
-
-      <div id="checkout-status" class="status" role="status" aria-live="polite" hidden></div>
-
-      <div class="access-divider"><span>¿Ya compraste?</span></div>
-
-      <div class="access-recovery">
-        <div>
-          <h3>Recuperá o volvé a descargar tus materiales</h3>
-          <p>Ingresá arriba el mismo correo que usaste al pagar y te enviaremos un enlace seguro para acceder nuevamente a los 7 PDF. No necesitás volver a pagar.</p>
-        </div>
-        <button id="recovery-button" class="btn recovery-action" type="button">Ya compré · Enviar enlace de acceso</button>
-      </div>
-
       <div id="recovery-status" class="recovery-status" role="status" aria-live="polite" hidden></div>
-      <p class="access-footnote">El acceso a las descargas se habilita únicamente para compras confirmadas por Mercado Pago.</p>
+      <p class="recovery-note">Si tu compra está aprobada, enviaremos un enlace a ese correo para recuperar el acceso.</p>
     </div>
   </div>
 </section>
-
 <section id="contenido"><div class="wrap">
 <div class="eyebrow">Todo lo que recibís</div><h2>7 materiales para llevar tu actividad al siguiente nivel</h2>
 <p class="lead">Un material principal y seis recursos complementarios, pensados para aplicar en el trabajo cotidiano.</p>
@@ -147,10 +162,28 @@
 </div>
 </div></section>
 
+
+<section id="comprar" class="purchase-section">
+  <div class="wrap">
+    <div class="purchase-panel">
+      <span class="purchase-tag">Primera vez en la tienda</span>
+      <h2>Comprá tu pack completo</h2>
+      <p class="purchase-copy">Ingresá tu correo electrónico para identificar tu compra y recibir el acceso a los siete materiales.</p>
+      <div class="purchase-form">
+        <label for="buyer-email">Correo electrónico para la compra</label>
+        <input id="buyer-email" type="email" autocomplete="email" placeholder="tu@email.com" required>
+        <button id="buy-button" class="btn primary" type="button">Comprar los 7 materiales · $14.900 ARS</button>
+      </div>
+      <div id="checkout-status" class="status" role="status" aria-live="polite" hidden></div>
+      <p class="purchase-note">El acceso se habilita una vez que Mercado Pago confirma el pago.</p>
+    </div>
+  </div>
+</section>
+
 <section id="ayuda"><div class="wrap"><div class="card" style="text-align:center;padding:30px"><div class="eyebrow">Atención al comprador</div><h2>¿Tuviste un problema con el pago o la entrega?</h2><p class="lead" style="margin:0 auto 20px">¿Tu pago se realizó pero no recibiste los materiales, o tuviste algún inconveniente durante la compra? Escribinos a <strong>solucionesntec@gmail.com</strong>. En el correo, indicá la dirección que usaste al comprar y <strong>adjuntá el comprobante de pago de Mercado Pago</strong>. No necesitás informar ningún número de transacción.</p><a class="btn primary" href="mailto:solucionesntec@gmail.com?subject=Ayuda%20con%20mi%20compra%20-%20Pack%20Seguridad%20Electr%C3%B3nica&body=Hola%2C%20necesito%20ayuda%20con%20mi%20compra%20del%20Pack%20de%20Seguridad%20Electr%C3%B3nica.%0A%0ACorreo%20utilizado%20en%20la%20compra%3A%20%0A%0AAdjunto%20el%20comprobante%20de%20pago%20de%20Mercado%20Pago.">Enviar correo y adjuntar comprobante</a></div></div></section>
 </main>
 <footer><div class="wrap">© <span id="year"></span> Soluciones NTEC · Seguridad y tecnología · Soporte: <a href="mailto:solucionesntec@gmail.com" style="color:var(--gold)">solucionesntec@gmail.com</a></div></footer>
-<script src="config.js?v=2"></script><script src="app.js?v=unified-email-3"></script><script>document.getElementById('year').textContent=new Date().getFullYear()</script>
+<script src="config.js?v=2"></script><script src="app.js?v=separate-recovery-purchase-4"></script><script>document.getElementById('year').textContent=new Date().getFullYear()</script>
 
 <a class="floating-cta" href="#comprar" aria-label="Comprar el pack completo por 14.900 pesos">
   <span class="cta-icon" aria-hidden="true">↗</span>
