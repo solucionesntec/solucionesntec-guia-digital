@@ -34,9 +34,13 @@ Deno.serve(async (req) => {
     const appsScriptUrl = Deno.env.get("APPS_SCRIPT_URL") || "";
     const appsScriptSecret = Deno.env.get("APPS_SCRIPT_SECRET") || "";
 
-    if (!supabaseUrl || !serviceRoleKey || !appsScriptUrl || !appsScriptSecret) {
-      console.error("Recovery service is missing required server configuration.");
-      return json({ error: "No pudimos procesar la solicitud en este momento." }, 503);
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error("Recovery service missing Supabase server configuration.");
+      return json({ error: "La recuperación no está conectada correctamente con la base de datos. Código: RECOVERY_DB_CONFIG" }, 503);
+    }
+    if (!appsScriptUrl || !appsScriptSecret) {
+      console.error("Recovery service missing Apps Script configuration.");
+      return json({ error: "Falta configurar el servicio de correo en Supabase. Código: RECOVERY_MAIL_CONFIG" }, 503);
     }
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
@@ -52,7 +56,7 @@ Deno.serve(async (req) => {
 
     if (error) {
       console.error("Recovery order lookup failed:", error);
-      return json({ error: "No pudimos procesar la solicitud en este momento." }, 503);
+      return json({ error: "Supabase no pudo consultar los pedidos. Código: RECOVERY_DB_QUERY" }, 503);
     }
 
     // Always return the same public message whether an approved order exists or not.
@@ -72,15 +76,22 @@ Deno.serve(async (req) => {
         });
         const mailResult = await mailResponse.json().catch(() => null);
         if (!mailResponse.ok || !mailResult || mailResult.ok !== true) {
+          const appError = String(mailResult?.error || "");
           console.error("Recovery email request failed", {
             httpStatus: mailResponse.status,
-            appError: mailResult?.error || "Invalid response",
+            appError: appError || "Invalid response",
           });
-          return json({ error: "No pudimos procesar la solicitud en este momento." }, 502);
+          if (appError.toLowerCase().includes("no autorizado")) {
+            return json({ error: "La clave de comunicación no coincide. Revisá que CLAVE_WEBHOOK en Apps Script sea idéntica a APPS_SCRIPT_SECRET en Supabase. Código: RECOVERY_SECRET" }, 502);
+          }
+          if (!mailResult) {
+            return json({ error: "Apps Script no devolvió una respuesta válida. Publicá una nueva versión de la aplicación web. Código: RECOVERY_SCRIPT_RESPONSE" }, 502);
+          }
+          return json({ error: "Apps Script rechazó el envío. Motivo: " + (appError || "respuesta no válida") + ". Código: RECOVERY_MAIL_REJECTED" }, 502);
         }
       } catch (mailError) {
         console.error("Recovery email request could not reach Apps Script:", mailError);
-        return json({ error: "No pudimos procesar la solicitud en este momento." }, 502);
+        return json({ error: "No se pudo conectar con Google Apps Script. Verificá APPS_SCRIPT_URL y la implementación de la aplicación web. Código: RECOVERY_MAIL_CONNECTION" }, 502);
       }
     }
 
