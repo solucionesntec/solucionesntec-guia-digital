@@ -120,6 +120,56 @@
     show("Tu pago está pendiente de acreditación. La guía se habilitará cuando Mercado Pago lo confirme.");
   }
 
+  const recoveryEmailInput = document.getElementById("recovery-email");
+  const recoveryButton = document.getElementById("recovery-button");
+  const recoveryStatus = document.getElementById("recovery-status");
+
+  if (recoveryButton) {
+    recoveryButton.addEventListener("click", async () => {
+      const email = (recoveryEmailInput?.value || "").trim().toLowerCase();
+      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+        if (recoveryStatus) {
+          recoveryStatus.textContent = "Ingresá una dirección de correo válida.";
+          recoveryStatus.hidden = false;
+        }
+        recoveryEmailInput?.focus();
+        return;
+      }
+      if (!validConfig()) {
+        if (recoveryStatus) {
+          recoveryStatus.textContent = "El servicio de recuperación no está disponible en este momento. Escribinos a solucionesntec@gmail.com.";
+          recoveryStatus.hidden = false;
+        }
+        return;
+      }
+
+      recoveryButton.disabled = true;
+      recoveryButton.textContent = "Verificando compra…";
+      if (recoveryStatus) {
+        recoveryStatus.textContent = "Estamos comprobando si hay una compra aprobada asociada a ese correo.";
+        recoveryStatus.hidden = false;
+      }
+
+      try {
+        const result = await callFunction("request-access", { email });
+        if (recoveryStatus) {
+          recoveryStatus.textContent = result.message ||
+            "Si encontramos una compra aprobada asociada a ese correo, enviaremos un enlace para recuperar el acceso. Revisá Recibidos y Spam.";
+          recoveryStatus.style.color = "#e9b949";
+        }
+        recoveryEmailInput.value = "";
+      } catch (error) {
+        if (recoveryStatus) {
+          recoveryStatus.textContent = "No pudimos procesar la solicitud en este momento. Volvé a intentarlo o escribinos a solucionesntec@gmail.com.";
+          recoveryStatus.style.color = "#ffb4a9";
+        }
+      } finally {
+        recoveryButton.disabled = false;
+        recoveryButton.textContent = "Enviar enlace de recuperación";
+      }
+    });
+  }
+
   if (buyButton) {
     buyButton.addEventListener("click", async () => {
       const email = (emailInput?.value || "").trim().toLowerCase();
