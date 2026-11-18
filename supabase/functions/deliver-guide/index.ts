@@ -18,6 +18,45 @@ const GUIDE_FILES = [
   { path: "07_IA_para_Instaladores_Prompts_ChatGPT.pdf", name: "Bono 6: IA para instaladores — prompts de ChatGPT" },
 ];
 
+
+async function sendPurchaseEmail(email: string, orderId: string) {
+  const appsScriptUrl = Deno.env.get("APPS_SCRIPT_URL") || "";
+  const appsScriptSecret = Deno.env.get("APPS_SCRIPT_SECRET") || "";
+  if (!appsScriptUrl || !appsScriptSecret) {
+    console.error("Purchase email not configured: missing Apps Script secrets");
+    return { ok: false, error: "El envío automático de correo no está configurado." };
+  }
+
+  try {
+    const response = await fetch(appsScriptUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        secret: appsScriptSecret,
+        email,
+        order_id: orderId,
+      }),
+      redirect: "follow",
+    });
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result || result.ok !== true) {
+      console.error("Purchase email send failed", {
+        httpStatus: response.status,
+        appError: result?.error || "Invalid response",
+      });
+      return { ok: false, error: result?.error || "No se pudo enviar el correo automático." };
+    }
+    console.info("Purchase email confirmed", {
+      orderId,
+      duplicateEmail: result.duplicate === true,
+    });
+    return { ok: true, duplicate: result.duplicate === true };
+  } catch (error) {
+    console.error("Purchase email request failed", error);
+    return { ok: false, error: "No se pudo conectar con el servicio de correo." };
+  }
+}
+
 async function reconcileApprovedPayment(
   supabase: ReturnType<typeof createClient>,
   order: {
@@ -109,33 +148,6 @@ async function reconcileApprovedPayment(
     return { ok: false, status: 500, error: "Se verificó el pago, pero no se pudo actualizar el pedido." };
   }
 
-  // The email script is idempotent; a webhook and this fallback can safely race.
-  const appsScriptUrl = Deno.env.get("APPS_SCRIPT_URL") || "";
-  const appsScriptSecret = Deno.env.get("APPS_SCRIPT_SECRET") || "";
-  if (appsScriptUrl && appsScriptSecret) {
-    try {
-      const emailResponse = await fetch(appsScriptUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          secret: appsScriptSecret,
-          email: order.buyer_email,
-          order_id: order.id,
-        }),
-        redirect: "follow",
-      });
-      const emailResult = await emailResponse.json().catch(() => null);
-      if (!emailResult || emailResult.ok !== true) {
-        console.error("Purchase email fallback failed", {
-          httpStatus: emailResponse.status,
-          appError: emailResult?.error || "Invalid response",
-        });
-      }
-    } catch (emailError) {
-      console.error("Purchase email fallback request failed", emailError);
-    }
-  }
-
   return { ok: true, status: 200, error: "" };
 }
 
@@ -208,7 +220,16 @@ Deno.serve(async (req) => {
       downloads.push({ name: file.name, file_name: resolvedPath, download_url: signedUrl });
     }
 
-    return json({ downloads, expires_in_seconds: 1200 });
+    // Attempt email delivery on every validated access, including already-approved orders.
+    // This lets a buyer recover a missing email without paying again.
+    const emailDelivery = await sendPurchaseEmail(order.buyer_email, order.id);
+
+    return json({
+      downloads,
+      expires_in_seconds: 1200,
+      email_sent: emailDelivery.ok,
+      email_error: emailDelivery.ok ? null : emailDelivery.error,
+    });
   } catch (error) {
     console.error(error);
     return json({ error: error instanceof Error ? error.message : "Error interno." }, 500);
