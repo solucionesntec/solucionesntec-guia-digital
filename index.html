@@ -95,6 +95,58 @@
 .purchase-note{color:#b8c6d6;font-size:.9rem;margin:16px auto 0}
 @media(max-width:650px){.recovery-section{padding:28px 0}.recovery-panel{padding:26px 18px}.recovery-panel:before{width:6px}.recovery-copy{font-size:1.05rem}.recovery-form label{font-size:1.08rem}.recovery-form input{min-height:60px;font-size:1.05rem}.recovery-action{font-size:1rem;min-height:62px;white-space:normal}.purchase-section{padding:38px 0}.purchase-panel{padding:25px 18px}}
 
+
+/* Final recovery layout correction: label, input and action stack vertically */
+.recovery-form{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) !important;
+  align-items:stretch !important;
+  gap:12px !important;
+  width:min(100%,690px) !important;
+  max-width:690px !important;
+  margin:28px auto 0 !important;
+}
+.recovery-form label{
+  display:block !important;
+  width:100% !important;
+  margin:0 !important;
+  font-size:1.18rem !important;
+  line-height:1.4 !important;
+  text-align:left !important;
+}
+.recovery-form input{
+  display:block !important;
+  width:100% !important;
+  min-width:0 !important;
+  min-height:66px !important;
+  margin:0 !important;
+  font-size:1.18rem !important;
+}
+.recovery-form button.recovery-action{
+  display:block !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  min-height:64px !important;
+  margin:2px 0 0 !important;
+  padding:15px 20px !important;
+  white-space:normal !important;
+  overflow-wrap:anywhere !important;
+  line-height:1.25 !important;
+  font-size:clamp(.92rem,1.5vw,1.08rem) !important;
+  text-align:center !important;
+}
+.floating-cta.cta-hidden{
+  opacity:0 !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+  transform:translateY(12px) !important;
+}
+@media(max-width:650px){
+  .recovery-form{grid-template-columns:minmax(0,1fr) !important}
+  .recovery-form button.recovery-action{font-size:1rem !important}
+}
+
 </style>
 </head>
 <body>
@@ -183,7 +235,7 @@
 <section id="ayuda"><div class="wrap"><div class="card" style="text-align:center;padding:30px"><div class="eyebrow">Atención al comprador</div><h2>¿Tuviste un problema con el pago o la entrega?</h2><p class="lead" style="margin:0 auto 20px">¿Tu pago se realizó pero no recibiste los materiales, o tuviste algún inconveniente durante la compra? Escribinos a <strong>solucionesntec@gmail.com</strong>. En el correo, indicá la dirección que usaste al comprar y <strong>adjuntá el comprobante de pago de Mercado Pago</strong>. No necesitás informar ningún número de transacción.</p><a class="btn primary" href="mailto:solucionesntec@gmail.com?subject=Ayuda%20con%20mi%20compra%20-%20Pack%20Seguridad%20Electr%C3%B3nica&body=Hola%2C%20necesito%20ayuda%20con%20mi%20compra%20del%20Pack%20de%20Seguridad%20Electr%C3%B3nica.%0A%0ACorreo%20utilizado%20en%20la%20compra%3A%20%0A%0AAdjunto%20el%20comprobante%20de%20pago%20de%20Mercado%20Pago.">Enviar correo y adjuntar comprobante</a></div></div></section>
 </main>
 <footer><div class="wrap">© <span id="year"></span> Soluciones NTEC · Seguridad y tecnología · Soporte: <a href="mailto:solucionesntec@gmail.com" style="color:var(--gold)">solucionesntec@gmail.com</a></div></footer>
-<script src="config.js?v=2"></script><script src="app.js?v=separate-recovery-purchase-4"></script><script>document.getElementById('year').textContent=new Date().getFullYear()</script>
+<script src="config.js?v=2"></script><script src="app.js?v=recovery-layout-fix-5"></script><script>document.getElementById('year').textContent=new Date().getFullYear()</script>
 
 <a class="floating-cta" href="#comprar" aria-label="Comprar el pack completo por 14.900 pesos">
   <span class="cta-icon" aria-hidden="true">↗</span>
