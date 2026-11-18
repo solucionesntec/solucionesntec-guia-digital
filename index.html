@@ -36,6 +36,33 @@
 .recovery-note{font-size:.86rem;color:#aebed0;margin:12px 0 0}
 @media(max-width:650px){.recovery-section{padding:24px 0 10px}.recovery-panel{padding:25px 20px}.recovery-form{grid-template-columns:1fr}.recovery-form button{width:100%;white-space:normal}}
 
+
+/* Unified email entry for purchase and returning buyers */
+.access-section{padding:46px 0 54px;background:linear-gradient(180deg,#0b1d32 0%,#071426 100%);border-top:1px solid #29415e;border-bottom:1px solid #29415e}
+.access-panel{max-width:900px;margin:0 auto;background:linear-gradient(135deg,#142d49,#1b3552);border:2px solid #e9b949;border-radius:22px;padding:clamp(26px,4vw,48px);box-shadow:0 18px 48px rgba(0,0,0,.34)}
+.access-heading{text-align:center}
+.access-tag{display:inline-block;background:#e9b949;color:#171717;border-radius:99px;padding:7px 15px;font-size:.82rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
+.access-heading h2{font-size:clamp(2rem,4.5vw,3rem);margin:18px 0 10px}
+.access-heading p{font-size:1.18rem;line-height:1.55;color:#d4dfeb;max-width:690px;margin:0 auto}
+.access-form{max-width:680px;margin:30px auto 0;text-align:left}
+.access-form label{display:block;font-size:1.25rem;font-weight:850;margin-bottom:10px;color:#fff}
+.access-form input{display:block;width:100%;min-height:66px;padding:16px 19px;border:2px solid #90a5be;border-radius:12px;background:#071426;color:#fff;font:inherit;font-size:1.25rem;outline:none}
+.access-form input:focus{border-color:#e9b949;box-shadow:0 0 0 4px rgba(233,185,73,.17)}
+.access-form input::placeholder{color:#8193a9}
+.access-actions{max-width:680px;margin:16px auto 0}
+.access-buy{width:100%;min-height:62px;font-size:1.18rem}
+.access-divider{display:flex;align-items:center;gap:16px;max-width:680px;margin:32px auto 24px;color:#f1ca68;font-size:1.08rem;font-weight:900}
+.access-divider:before,.access-divider:after{content:"";height:1px;background:#647c98;flex:1}
+.access-recovery{max-width:680px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:22px;padding:20px 22px;background:#0a1b2e;border:1px solid #647c98;border-radius:14px}
+.access-recovery h3{font-size:1.22rem;margin:0 0 7px;color:#fff}
+.access-recovery p{font-size:1rem;line-height:1.5;color:#c1cfdd;margin:0}
+.recovery-action{flex:0 0 auto;background:#243c58;color:#fff;border:1px solid #e9b949;font-size:1rem;min-height:54px}
+.recovery-action:hover{background:#304e70}
+.recovery-action:disabled{opacity:.65;cursor:wait}
+.access-footnote{max-width:680px;margin:16px auto 0;color:#aebed0;font-size:.9rem;text-align:center}
+.recovery-status{max-width:680px;margin:14px auto 0;color:#f3d27d;font-size:1rem;overflow-wrap:anywhere}
+@media(max-width:680px){.access-section{padding:28px 0 34px}.access-panel{padding:25px 18px}.access-heading p{font-size:1.05rem}.access-form label{font-size:1.12rem}.access-form input{min-height:60px;font-size:1.1rem}.access-recovery{display:grid;grid-template-columns:1fr}.recovery-action{width:100%;white-space:normal}.access-buy{font-size:1.05rem}}
+
 </style>
 </head>
 <body>
@@ -49,6 +76,43 @@
 <div class="actions"><a class="btn primary" href="#comprar">Quiero el pack completo</a><a class="btn secondary" href="#contenido">Ver todo lo que incluye</a></div>
 <div class="price">Acceso digital completo <strong>$14.900 ARS</strong></div>
 </div></section>
+
+<section id="comprar" class="access-section">
+  <div class="wrap">
+    <div class="access-panel">
+      <div class="access-heading">
+        <span class="access-tag">Acceso digital · Soluciones NTEC</span>
+        <h2>Ingresá tu correo electrónico</h2>
+        <p>Usá una dirección de correo válida. Con ella vas a poder comprar el pack o recuperar tus materiales si ya realizaste el pago.</p>
+      </div>
+
+      <div class="access-form">
+        <label for="buyer-email">Tu correo electrónico</label>
+        <input id="buyer-email" type="email" autocomplete="email" placeholder="tu@email.com" required>
+      </div>
+
+      <div class="access-actions">
+        <button id="buy-button" class="btn primary access-buy" type="button">Comprar los 7 materiales · $14.900 ARS</button>
+      </div>
+
+      <div id="checkout-status" class="status" role="status" aria-live="polite" hidden></div>
+
+      <div class="access-divider"><span>¿Ya compraste?</span></div>
+
+      <div class="access-recovery">
+        <div>
+          <h3>Recuperá o volvé a descargar tus materiales</h3>
+          <p>Ingresá arriba el mismo correo que usaste al pagar y te enviaremos un enlace seguro para acceder nuevamente a los 7 PDF. No necesitás volver a pagar.</p>
+        </div>
+        <button id="recovery-button" class="btn recovery-action" type="button">Ya compré · Enviar enlace de acceso</button>
+      </div>
+
+      <div id="recovery-status" class="recovery-status" role="status" aria-live="polite" hidden></div>
+      <p class="access-footnote">El acceso a las descargas se habilita únicamente para compras confirmadas por Mercado Pago.</p>
+    </div>
+  </div>
+</section>
+
 <section id="contenido"><div class="wrap">
 <div class="eyebrow">Todo lo que recibís</div><h2>7 materiales para llevar tu actividad al siguiente nivel</h2>
 <p class="lead">Un material principal y seis recursos complementarios, pensados para aplicar en el trabajo cotidiano.</p>
@@ -83,37 +147,10 @@
 </div>
 </div></section>
 
-<section id="recuperar" class="recovery-section">
-  <div class="wrap">
-    <div class="recovery-panel">
-      <span class="recovery-tag">¿Ya compraste?</span>
-      <h2>Recuperá tus 7 materiales</h2>
-      <p class="recovery-copy">¿Perdiste el correo de entrega o querés volver a descargar la guía y los seis bonos? Escribí el mismo correo que utilizaste al pagar y te enviaremos un enlace seguro para recuperar el acceso.</p>
-      <div class="recovery-form">
-        <div>
-          <label for="recovery-email">Correo electrónico utilizado en la compra</label>
-          <input id="recovery-email" type="email" autocomplete="email" placeholder="tu@email.com" required>
-        </div>
-        <button id="recovery-button" class="btn" type="button">Enviar enlace de recuperación</button>
-      </div>
-      <div id="recovery-status" class="recovery-status" role="status" aria-live="polite" hidden></div>
-      <p class="recovery-note">Por seguridad, el enlace se envía únicamente al correo registrado en una compra aprobada. No necesitás volver a pagar.</p>
-    </div>
-  </div>
-</section>
-
-<section id="comprar"><div class="wrap"><div class="offer">
-<div class="eyebrow">Acceso digital · Pack completo</div><h2>El negocio de la seguridad electrónica</h2>
-<p>Recibí la guía principal y los seis bonos complementarios, incluidos los prompts de inteligencia artificial para instaladores.</p>
-<div class="price">Los 7 PDF por <strong>$14.900 ARS</strong></div>
-<div class="buy-form"><label for="buyer-email">Correo electrónico para identificar tu compra</label><input id="buyer-email" type="email" autocomplete="email" placeholder="tu@email.com" required><button id="buy-button" class="btn primary" type="button">Comprar pack completo · $14.900</button></div>
-<div id="checkout-status" class="status" role="status" aria-live="polite" hidden></div>
-<p class="small">La descarga de los siete archivos se habilita únicamente después de que Mercado Pago confirme el pago.</p>
-</div></div></section>
 <section id="ayuda"><div class="wrap"><div class="card" style="text-align:center;padding:30px"><div class="eyebrow">Atención al comprador</div><h2>¿Tuviste un problema con el pago o la entrega?</h2><p class="lead" style="margin:0 auto 20px">¿Tu pago se realizó pero no recibiste los materiales, o tuviste algún inconveniente durante la compra? Escribinos a <strong>solucionesntec@gmail.com</strong>. En el correo, indicá la dirección que usaste al comprar y <strong>adjuntá el comprobante de pago de Mercado Pago</strong>. No necesitás informar ningún número de transacción.</p><a class="btn primary" href="mailto:solucionesntec@gmail.com?subject=Ayuda%20con%20mi%20compra%20-%20Pack%20Seguridad%20Electr%C3%B3nica&body=Hola%2C%20necesito%20ayuda%20con%20mi%20compra%20del%20Pack%20de%20Seguridad%20Electr%C3%B3nica.%0A%0ACorreo%20utilizado%20en%20la%20compra%3A%20%0A%0AAdjunto%20el%20comprobante%20de%20pago%20de%20Mercado%20Pago.">Enviar correo y adjuntar comprobante</a></div></div></section>
 </main>
 <footer><div class="wrap">© <span id="year"></span> Soluciones NTEC · Seguridad y tecnología · Soporte: <a href="mailto:solucionesntec@gmail.com" style="color:var(--gold)">solucionesntec@gmail.com</a></div></footer>
-<script src="config.js?v=2"></script><script src="app.js?v=recovery-2"></script><script>document.getElementById('year').textContent=new Date().getFullYear()</script>
+<script src="config.js?v=2"></script><script src="app.js?v=unified-email-3"></script><script>document.getElementById('year').textContent=new Date().getFullYear()</script>
 
 <a class="floating-cta" href="#comprar" aria-label="Comprar el pack completo por 14.900 pesos">
   <span class="cta-icon" aria-hidden="true">↗</span>
