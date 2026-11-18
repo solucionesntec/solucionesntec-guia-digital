@@ -124,6 +124,17 @@
   const recoveryButton = document.getElementById("recovery-button");
   const recoveryStatus = document.getElementById("recovery-status");
 
+  // Hide the floating purchase shortcut while the recovery panel is visible,
+  // so it never overlaps the recovery form or its confirmation message.
+  const floatingCta = document.querySelector(".floating-cta");
+  const recoverySection = document.getElementById("recuperar");
+  if (floatingCta && recoverySection && "IntersectionObserver" in window) {
+    const recoveryObserver = new IntersectionObserver((entries) => {
+      floatingCta.classList.toggle("cta-hidden", entries.some(entry => entry.isIntersecting));
+    }, { threshold: 0.08 });
+    recoveryObserver.observe(recoverySection);
+  }
+
   if (recoveryButton) {
     recoveryButton.addEventListener("click", async () => {
       const email = (recoveryEmailInput?.value || "").trim().toLowerCase();
