@@ -17,6 +17,11 @@ const STORE_URL = "https://solucionesntec.github.io/solucionesntec-guia-digital/
 const SECRET_PROPERTY = "APPS_SCRIPT_SECRET";
 const SENT_PREFIX = "NTEC_EMAIL_SENT_";
 
+function authorizeMail() {
+  const remaining = MailApp.getRemainingDailyQuota();
+  Logger.log("Permiso de correo autorizado. Destinatarios disponibles hoy: " + remaining);
+}
+
 function setupSecret() {
   const secret = Utilities.getUuid() + "-" + Utilities.getUuid();
   PropertiesService.getScriptProperties().setProperty(SECRET_PROPERTY, secret);
