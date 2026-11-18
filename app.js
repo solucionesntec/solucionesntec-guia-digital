@@ -120,18 +120,19 @@
     show("Tu pago está pendiente de acreditación. La guía se habilitará cuando Mercado Pago lo confirme.");
   }
 
+  const recoveryEmailInput = document.getElementById("recovery-email");
   const recoveryButton = document.getElementById("recovery-button");
   const recoveryStatus = document.getElementById("recovery-status");
 
   if (recoveryButton) {
     recoveryButton.addEventListener("click", async () => {
-      const email = (emailInput?.value || "").trim().toLowerCase();
+      const email = (recoveryEmailInput?.value || "").trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         if (recoveryStatus) {
           recoveryStatus.textContent = "Ingresá una dirección de correo válida.";
           recoveryStatus.hidden = false;
         }
-        emailInput?.focus();
+        recoveryEmailInput?.focus();
         return;
       }
       if (!validConfig()) {
