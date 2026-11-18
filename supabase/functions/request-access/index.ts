@@ -74,20 +74,40 @@ Deno.serve(async (req) => {
           }),
           redirect: "follow",
         });
-        const mailResult = await mailResponse.json().catch(() => null);
-        if (!mailResponse.ok || !mailResult || mailResult.ok !== true) {
-          const appError = String(mailResult?.error || "");
+        const responseText = await mailResponse.text();
+        let mailResult: { ok?: boolean; error?: string; duplicate?: boolean; throttled?: boolean } | null = null;
+        try {
+          mailResult = JSON.parse(responseText);
+        } catch {
+          // Google Apps Script ContentService can redirect its JSON output.
+          // If MailApp completed and the redirected response is HTTP 2xx,
+          // do not show a false error to the buyer.
+        }
+
+        if (!mailResponse.ok) {
+          console.error("Recovery email request failed", {
+            httpStatus: mailResponse.status,
+            responsePreview: responseText.slice(0, 300),
+          });
+          return json({ error: "Google Apps Script rechazó la solicitud. Código: RECOVERY_MAIL_HTTP" }, 502);
+        }
+
+        if (mailResult && mailResult.ok !== true) {
+          const appError = String(mailResult.error || "");
           console.error("Recovery email request failed", {
             httpStatus: mailResponse.status,
             appError: appError || "Invalid response",
           });
           if (appError.toLowerCase().includes("no autorizado")) {
-            return json({ error: "La clave de comunicación no coincide. Revisá que CLAVE_WEBHOOK en Apps Script sea idéntica a APPS_SCRIPT_SECRET en Supabase. Código: RECOVERY_SECRET" }, 502);
-          }
-          if (!mailResult) {
-            return json({ error: "Apps Script no devolvió una respuesta válida. Publicá una nueva versión de la aplicación web. Código: RECOVERY_SCRIPT_RESPONSE" }, 502);
+            return json({ error: "La clave de comunicación no coincide. Código: RECOVERY_SECRET" }, 502);
           }
           return json({ error: "Apps Script rechazó el envío. Motivo: " + (appError || "respuesta no válida") + ". Código: RECOVERY_MAIL_REJECTED" }, 502);
+        }
+
+        if (!mailResult) {
+          console.warn("Recovery email accepted by Apps Script with HTTP 2xx; ContentService body was not JSON after redirect.", {
+            status: mailResponse.status,
+          });
         }
       } catch (mailError) {
         console.error("Recovery email request could not reach Apps Script:", mailError);
