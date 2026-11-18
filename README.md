@@ -38,6 +38,21 @@ URL: `https://ddpnouenuwmwufsjosng.supabase.co`
    
    Supabase normalmente proporciona `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` en el entorno de funciones. No las expongas ni las subas a GitHub.
 
+### 2. Envío automático de correos (Google Apps Script)
+
+El archivo `apps-script/Code.gs` contiene el servicio que envía el correo al comprador con un enlace seguro de acceso a sus siete materiales.
+
+1. Abrí [script.google.com](https://script.google.com/) con la cuenta de Google desde la que querés enviar los correos.
+2. Creá un proyecto nuevo, reemplazá el contenido de `Code.gs` por el contenido de `apps-script/Code.gs` de este repositorio y guardá.
+3. Desde el editor, ejecutá `setupSecret()` una sola vez y autorizá los permisos. Copiá el secreto que aparece en el registro de ejecución; no lo publiques ni lo compartas.
+4. En **Implementar → Nueva implementación → Aplicación web**, elegí **Ejecutar como: yo** y **Quién tiene acceso: cualquier persona**. Implementá y copiá la URL de la aplicación web que termina en `/exec`.
+5. En Supabase → Edge Functions → Secrets, configurá:
+   - `APPS_SCRIPT_URL`: URL de la aplicación web publicada.
+   - `APPS_SCRIPT_SECRET`: el secreto generado en el paso 3.
+6. Abrí la URL `/exec` en el navegador. Debe responder que el servicio de correo está activo.
+
+El correo contiene un enlace a la tienda. Los archivos no se adjuntan: la página vuelve a validar el pedido y el correo del comprador antes de habilitar descargas temporales desde el bucket privado.
+
 ### 2. Mercado Pago
 
 1. En Tus integraciones, seleccioná o creá la aplicación de Checkout Pro.
