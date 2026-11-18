@@ -19,6 +19,23 @@
 @media(max-width:600px){.floating-cta{left:14px;right:14px;bottom:14px;justify-content:center;border-radius:14px;padding:11px 16px}.floating-cta .cta-icon{width:39px;height:39px}.floating-cta .cta-title{font-size:.92rem}}
 @media(prefers-reduced-motion:reduce){.floating-cta{animation:none;transition:none}}
 
+
+/* Recovery panel: visually separated from the purchase offer */
+.recovery-section{padding:34px 0 18px}
+.recovery-panel{position:relative;overflow:hidden;background:linear-gradient(120deg,#1b2f49 0%,#14243a 60%,#2b271c 100%);border:2px solid #e9b949;border-radius:18px;padding:30px 32px;box-shadow:0 12px 32px rgba(0,0,0,.28)}
+.recovery-panel:before{content:"";position:absolute;inset:0 auto 0 0;width:7px;background:linear-gradient(#ffca55,#ee8c27)}
+.recovery-tag{display:inline-block;background:#e9b949;color:#171717;border-radius:99px;padding:5px 12px;font-size:.76rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.recovery-panel h2{margin:13px 0 8px}
+.recovery-panel .recovery-copy{max-width:760px;color:#d5dfeb;margin:0}
+.recovery-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;max-width:760px;margin-top:22px}
+.recovery-form label{display:block;font-weight:800;margin-bottom:7px;color:#fff}
+.recovery-form input{width:100%;min-width:0;padding:14px;border-radius:9px;border:1px solid #8b9bb0;background:#071426;color:#fff;font:inherit}
+.recovery-form button{min-height:51px;white-space:nowrap;background:#e9b949;color:#171717}
+.recovery-form button:disabled{opacity:.65;cursor:wait}
+.recovery-status{margin:14px 0 0;color:#f3d27d;max-width:760px;overflow-wrap:anywhere}
+.recovery-note{font-size:.86rem;color:#aebed0;margin:12px 0 0}
+@media(max-width:650px){.recovery-section{padding:24px 0 10px}.recovery-panel{padding:25px 20px}.recovery-form{grid-template-columns:1fr}.recovery-form button{width:100%;white-space:normal}}
+
 </style>
 </head>
 <body>
@@ -65,6 +82,26 @@
 <article class="card"><h3>Técnicos independientes</h3><p>Para sumar herramientas de gestión, comunicación, marketing e inteligencia artificial.</p></article>
 </div>
 </div></section>
+
+<section id="recuperar" class="recovery-section">
+  <div class="wrap">
+    <div class="recovery-panel">
+      <span class="recovery-tag">¿Ya compraste?</span>
+      <h2>Recuperá tus 7 materiales</h2>
+      <p class="recovery-copy">¿Perdiste el correo de entrega o querés volver a descargar la guía y los seis bonos? Escribí el mismo correo que utilizaste al pagar y te enviaremos un enlace seguro para recuperar el acceso.</p>
+      <div class="recovery-form">
+        <div>
+          <label for="recovery-email">Correo electrónico utilizado en la compra</label>
+          <input id="recovery-email" type="email" autocomplete="email" placeholder="tu@email.com" required>
+        </div>
+        <button id="recovery-button" class="btn" type="button">Enviar enlace de recuperación</button>
+      </div>
+      <div id="recovery-status" class="recovery-status" role="status" aria-live="polite" hidden></div>
+      <p class="recovery-note">Por seguridad, el enlace se envía únicamente al correo registrado en una compra aprobada. No necesitás volver a pagar.</p>
+    </div>
+  </div>
+</section>
+
 <section id="comprar"><div class="wrap"><div class="offer">
 <div class="eyebrow">Acceso digital · Pack completo</div><h2>El negocio de la seguridad electrónica</h2>
 <p>Recibí la guía principal y los seis bonos complementarios, incluidos los prompts de inteligencia artificial para instaladores.</p>
@@ -76,7 +113,7 @@
 <section id="ayuda"><div class="wrap"><div class="card" style="text-align:center;padding:30px"><div class="eyebrow">Atención al comprador</div><h2>¿Tuviste un problema con el pago o la entrega?</h2><p class="lead" style="margin:0 auto 20px">¿Tu pago se realizó pero no recibiste los materiales, o tuviste algún inconveniente durante la compra? Escribinos a <strong>solucionesntec@gmail.com</strong>. En el correo, indicá la dirección que usaste al comprar y <strong>adjuntá el comprobante de pago de Mercado Pago</strong>. No necesitás informar ningún número de transacción.</p><a class="btn primary" href="mailto:solucionesntec@gmail.com?subject=Ayuda%20con%20mi%20compra%20-%20Pack%20Seguridad%20Electr%C3%B3nica&body=Hola%2C%20necesito%20ayuda%20con%20mi%20compra%20del%20Pack%20de%20Seguridad%20Electr%C3%B3nica.%0A%0ACorreo%20utilizado%20en%20la%20compra%3A%20%0A%0AAdjunto%20el%20comprobante%20de%20pago%20de%20Mercado%20Pago.">Enviar correo y adjuntar comprobante</a></div></div></section>
 </main>
 <footer><div class="wrap">© <span id="year"></span> Soluciones NTEC · Seguridad y tecnología · Soporte: <a href="mailto:solucionesntec@gmail.com" style="color:var(--gold)">solucionesntec@gmail.com</a></div></footer>
-<script src="config.js?v=2"></script><script src="app.js?v=email-status-3"></script><script>document.getElementById('year').textContent=new Date().getFullYear()</script>
+<script src="config.js?v=2"></script><script src="app.js?v=recovery-1"></script><script>document.getElementById('year').textContent=new Date().getFullYear()</script>
 
 <a class="floating-cta" href="#comprar" aria-label="Comprar el pack completo por 14.900 pesos">
   <span class="cta-icon" aria-hidden="true">↗</span>
