@@ -160,7 +160,9 @@
         recoveryEmailInput.value = "";
       } catch (error) {
         if (recoveryStatus) {
-          recoveryStatus.textContent = "No pudimos procesar la solicitud en este momento. Volvé a intentarlo o escribinos a solucionesntec@gmail.com.";
+          recoveryStatus.textContent = error && error.message
+            ? error.message
+            : "No pudimos procesar la solicitud en este momento. Volvé a intentarlo o escribinos a solucionesntec@gmail.com.";
           recoveryStatus.style.color = "#ffb4a9";
         }
       } finally {
