@@ -147,36 +147,184 @@
   .recovery-form button.recovery-action{font-size:1rem !important}
 }
 
+
+/* Landing refresh: editorial product presentation, conversion hierarchy and mobile layout */
+.top-inner{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.top-inner>a{display:block;flex:0 0 auto}
+.brand-logo{width:min(250px,100%);height:94px;object-fit:contain;object-position:left center;background:transparent;padding:0}
+.top-nav{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.top-nav a{color:#dce6f1;text-decoration:none;font-size:.91rem;font-weight:700}
+.top-nav a:hover,.hero-text-link:hover{color:var(--gold)}
+.top-nav .top-recovery{border:1px solid #627b99;padding:9px 13px;border-radius:8px;color:#f2cf78}
+.hero-refresh{padding:66px 0 70px;background:radial-gradient(ellipse at 75% 40%,rgba(30,76,116,.55),transparent 46%),linear-gradient(120deg,#071426 0%,#0b1d32 58%,#102b47 100%);overflow:hidden}
+.hero-layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(310px,.8fr);align-items:center;gap:42px}
+.hero-copy{position:relative;z-index:2}
+.hero-refresh h1{max-width:760px;font-size:clamp(2.5rem,5.5vw,4.55rem);letter-spacing:-.045em}
+.hero-refresh .lead{font-size:1.2rem;line-height:1.7;max-width:690px}
+.hero-points{display:grid;gap:9px;margin:24px 0 0;color:#e3edf7;font-weight:650}
+.hero-points span:before{content:"✓";color:var(--gold);font-weight:950;margin-right:10px}
+.hero-refresh .actions{align-items:center;margin-top:28px}
+.hero-refresh .primary{padding:16px 22px;box-shadow:0 10px 25px rgba(233,185,73,.15)}
+.hero-text-link{color:#e5edf6;text-decoration:none;font-weight:750}
+.hero-price-line{margin-top:24px;color:#b9c8d8}
+.hero-price-line strong{color:#ffd36c;font-size:1.45rem;margin-left:8px}
+.product-stage{min-height:440px;position:relative;display:flex;align-items:center;justify-content:center;isolation:isolate}
+.product-glow{position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(232,172,55,.23),rgba(34,75,112,.18) 46%,transparent 72%);filter:blur(4px);z-index:-1}
+.product-cover{position:relative;z-index:3;width:min(290px,72%);min-height:370px;padding:26px 24px 20px;border-radius:8px 15px 15px 8px;background:linear-gradient(145deg,#173858,#071426 76%);border:1px solid #56718d;box-shadow:18px 22px 38px rgba(0,0,0,.48),inset 5px 0 0 rgba(255,255,255,.07);transform:rotate(-4deg);display:flex;flex-direction:column}
+.product-cover:after{content:"";position:absolute;top:0;bottom:0;left:13px;width:1px;background:rgba(255,255,255,.15)}
+.cover-brand{font-size:.77rem;letter-spacing:.13em;font-weight:800;color:#d4dfeb}
+.cover-brand b{color:#f3b53d}
+.cover-rule{height:3px;width:60px;background:#f0ad35;margin:22px 0 24px}
+.cover-kicker{font-size:.68rem;letter-spacing:.18em;font-weight:900;color:#f0bc55}
+.cover-title{font-size:1.8rem;line-height:1.07;letter-spacing:-.04em;margin-top:10px;font-weight:750}
+.cover-title strong{color:#f6bd4c}
+.cover-subtitle{font-size:.82rem;line-height:1.45;color:#c0cfde;margin-top:18px}
+.cover-footer{margin-top:auto;padding-top:16px;border-top:1px solid #47627e;display:flex;justify-content:space-between;gap:8px;font-size:.68rem;letter-spacing:.08em;color:#d8e3ee}
+.cover-footer span{color:#ffd36c;font-weight:900}
+.product-sheet{position:absolute;width:245px;height:335px;border:1px solid #7890a9;border-radius:8px;background:linear-gradient(145deg,#e7edf3,#aebdca);box-shadow:12px 18px 28px rgba(0,0,0,.25);color:#142940;padding:24px 17px;display:flex;flex-direction:column;gap:14px;font-size:.67rem;letter-spacing:.08em;font-weight:850}
+.sheet-two{z-index:2;transform:rotate(7deg) translate(25px,7px)}
+.sheet-three{z-index:1;transform:rotate(14deg) translate(45px,16px);background:linear-gradient(145deg,#f4e4bd,#c8a969)}
+.sheet-three b,.sheet-two b{margin-top:auto;font-size:.95rem;line-height:1.4}
+.product-sticker{position:absolute;z-index:4;right:4%;top:13%;display:flex;align-items:center;gap:9px;width:104px;height:104px;justify-content:center;border-radius:50%;background:#edb640;color:#152235;box-shadow:0 10px 26px rgba(0,0,0,.35);transform:rotate(9deg)}
+.product-sticker strong{font-size:2.35rem;line-height:1}
+.product-sticker span{font-size:.63rem;line-height:1.15;font-weight:950}
+.stage-caption{position:absolute;bottom:4px;left:0;right:0;text-align:center;color:#aebed0;font-size:.84rem}
+.value-section,.how-section{padding:76px 0;background:#0b1c30}
+.value-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:30px}
+.value-card{padding:26px;border:1px solid #2e4865;border-radius:14px;background:linear-gradient(150deg,#142c47,#0d2037)}
+.value-number{font-size:.8rem;font-weight:900;letter-spacing:.15em;color:#eeb94b}
+.value-card h3{font-size:1.18rem;margin:12px 0 8px}
+.value-card p,.how-step p{margin:0;color:#bbc9d8;line-height:1.65}
+.section-intro{max-width:760px}
+.section-intro h2{font-size:clamp(1.9rem,4vw,2.8rem);letter-spacing:-.025em}
+.section-intro>p{font-size:1.08rem;color:#bdcbd9;max-width:720px}
+#contenido{padding-top:76px}
+#contenido .grid{margin-top:28px}
+#contenido .card{transition:transform .2s ease,border-color .2s ease}
+#contenido .card:hover{transform:translateY(-3px);border-color:#d5a544}
+.included{background:#0a1b2e}
+.how-section{background:linear-gradient(180deg,#0b1c30,#10243b)}
+.how-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:30px}
+.how-step{padding:24px;border:1px solid #3a5573;border-radius:14px;background:rgba(7,20,38,.5)}
+.how-step>span{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:#e9b949;color:#152235;font-weight:950}
+.how-step h3{margin:16px 0 8px}
+.faq-section{padding:72px 0;background:#0a1b2e}
+.faq-wrap{max-width:850px}
+.faq-section details{padding:20px 22px;margin-top:12px;border:1px solid #2f4966;border-radius:12px;background:#10243b}
+.faq-section summary{cursor:pointer;font-weight:800;color:#f3f6fa;list-style:none;padding-right:28px;position:relative}
+.faq-section summary::-webkit-details-marker{display:none}
+.faq-section summary:after{content:"+";position:absolute;right:0;top:-4px;color:#f0be4c;font-size:1.5rem}
+.faq-section details[open] summary:after{content:"−"}
+.faq-section details p{margin:14px 0 0;color:#c1cedd;line-height:1.65}
+.offer-price{max-width:460px;margin:26px auto 0;padding:20px;border:1px solid #8f7338;border-radius:13px;background:rgba(7,20,38,.48);display:grid;gap:5px}
+.offer-price>span{color:#c7d3df;font-weight:700}
+.offer-price>strong{font-size:2.7rem;color:#ffd36c;line-height:1.2}
+.offer-price small{font-size:1rem}
+.offer-price em{font-style:normal;color:#c2cfdd;font-size:.9rem}
+.purchase-section{padding:66px 0}
+.purchase-panel{border-color:#8c713b;box-shadow:0 18px 48px rgba(0,0,0,.25)}
+.purchase-panel .primary{font-size:1.1rem}
+.recovery-section{padding:48px 0 54px;background:#09182a}
+.recovery-panel{max-width:820px}
+@media(max-width:820px){
+ .hero-layout{grid-template-columns:1fr;gap:8px}
+ .hero-copy{max-width:760px}
+ .product-stage{min-height:400px;margin-top:6px}
+ .product-cover{min-height:340px}
+ .value-grid,.how-grid{grid-template-columns:1fr}
+ .top-inner{align-items:flex-start}
+ .top-nav{justify-content:flex-end;gap:10px 16px}
+}
+@media(max-width:600px){
+ .top-inner{display:grid;grid-template-columns:1fr;gap:8px}
+ .brand-logo{height:72px;width:220px}
+ .top-nav{justify-content:flex-start;gap:8px 14px}
+ .top-nav a{font-size:.8rem}
+ .top-nav .top-recovery{padding:6px 9px}
+ .hero-refresh{padding:44px 0 46px}
+ .hero-refresh h1{font-size:clamp(2.25rem,11vw,3.2rem)}
+ .hero-refresh .lead{font-size:1.05rem}
+ .hero-refresh .actions{align-items:stretch;flex-direction:column}
+ .hero-refresh .actions .btn{text-align:center}
+ .product-stage{min-height:360px;transform:scale(.94);margin-left:-4%;margin-right:-4%}
+ .product-cover{width:245px;min-height:325px}
+ .product-sheet{width:215px;height:300px}
+ .product-sticker{right:0;top:9%;width:88px;height:88px}
+ .stage-caption{bottom:-8px}
+ .value-section,.how-section,.faq-section{padding:52px 0}
+ #contenido{padding-top:54px}
+ .offer-price>strong{font-size:2.35rem}
+}
+
 </style>
 </head>
 <body>
-<header class="top"><div class="wrap"><img class="brand-logo" src="https://raw.githubusercontent.com/solucionesntec/solucionesntec-guia-digital/main/logo-ntec.jpg" alt="Soluciones NTEC — Seguridad y Tecnología"></div></header>
+<header class="top"><div class="wrap top-inner"><a href="#" aria-label="Soluciones NTEC, inicio"><img class="brand-logo" src="https://raw.githubusercontent.com/solucionesntec/solucionesntec-guia-digital/main/logo-ntec.jpg" alt="Soluciones NTEC — Seguridad y Tecnología"></a><nav class="top-nav"><a href="#contenido">Qué incluye</a><a href="#preguntas">Preguntas frecuentes</a><a class="top-recovery" href="#recuperar">Ya compré · Recuperar acceso</a></nav></div></header>
 <main>
-<section class="hero"><div class="wrap">
-<div class="eyebrow">Pack profesional · Seguridad electrónica</div>
-<h1>Convertí tus conocimientos técnicos en un negocio de seguridad electrónica más profesional.</h1>
-<p class="lead">No es solamente una guía: es un kit de trabajo para instaladores y emprendedores que quieren organizar sus servicios, conseguir clientes, preparar presupuestos y aprovechar la inteligencia artificial en su actividad.</p>
-<div><span class="pill">7 archivos PDF</span><span class="pill">1 guía + 6 bonos</span><span class="pill">Prompts de IA incluidos</span></div>
-<div class="actions"><a class="btn primary" href="#comprar">Quiero el pack completo</a><a class="btn secondary" href="#contenido">Ver todo lo que incluye</a></div>
-<div class="price">Acceso digital completo <strong>$14.900 ARS</strong></div>
-</div></section>
 
-
-<section id="recuperar" class="recovery-section">
+<section class="hero hero-refresh">
+  <div class="wrap hero-layout">
+    <div class="hero-copy">
+      <div class="eyebrow">SOLUCIONES NTEC · KIT PROFESIONAL PARA INSTALADORES</div>
+      <h1>Convertí tu conocimiento técnico en un negocio de seguridad electrónica más profesional.</h1>
+      <p class="lead">Una guía práctica y seis recursos para organizar tus servicios, presentar presupuestos, conseguir clientes y trabajar con más método.</p>
+      <div class="hero-points">
+        <span>7 materiales digitales en PDF</span>
+        <span>Guía principal + 6 bonos</span>
+        <span>Herramientas para aplicar en tu actividad</span>
+      </div>
+      <div class="actions">
+        <a class="btn primary" href="#comprar">QUIERO EL PACK COMPLETO</a>
+        <a class="hero-text-link" href="#contenido">Ver qué incluye ↓</a>
+      </div>
+      <div class="hero-price-line">Un solo pago <strong>$14.900 ARS</strong></div>
+    </div>
+    <div class="product-stage" aria-label="Representación visual del pack digital de siete materiales">
+      <div class="product-glow"></div>
+      <div class="product-sheet sheet-back sheet-three"><span>BONOS PRÁCTICOS</span><b>05 · 06 · 07</b></div>
+      <div class="product-sheet sheet-back sheet-two"><span>RECURSOS PARA TU NEGOCIO</span><b>CHECKLIST · CLIENTES · IA</b></div>
+      <div class="product-cover">
+        <div class="cover-brand">SOLUCIONES <b>NTEC</b></div>
+        <div class="cover-rule"></div>
+        <div class="cover-kicker">GUÍA PROFESIONAL</div>
+        <div class="cover-title">EL NEGOCIO DE LA<br><strong>SEGURIDAD<br>ELECTRÓNICA</strong></div>
+        <div class="cover-subtitle">Organización · Presupuestos · Clientes · Crecimiento</div>
+        <div class="cover-footer"><b>1 GUÍA PRINCIPAL</b><span>+ 6 BONOS</span></div>
+      </div>
+      <div class="product-sticker"><strong>7</strong><span>PDF<br>INCLUIDOS</span></div>
+      <div class="stage-caption">Todo el material en un solo pack digital</div>
+    </div>
+  </div>
+</section>
+<section class="value-section">
   <div class="wrap">
-    <div class="recovery-panel">
-      <div class="recovery-head">
-        <span class="recovery-tag">¿YA COMPRASTE?</span>
-        <h2>Recuperá tus 7 materiales</h2>
-        <p class="recovery-copy">Esta opción es solamente para quienes ya pagaron y quieren volver a descargar la guía y los seis bonos. No necesitás volver a comprar.</p>
-      </div>
-      <div class="recovery-form">
-        <label for="recovery-email">Ingresá el correo que usaste al realizar la compra</label>
-        <input id="recovery-email" type="email" autocomplete="email" placeholder="El mismo correo que usaste al pagar" required>
-        <button id="recovery-button" class="btn recovery-action" type="button">YA COMPRÉ · ENVIAR MI ENLACE DE ACCESO</button>
-      </div>
-      <div id="recovery-status" class="recovery-status" role="status" aria-live="polite" hidden></div>
-      <p class="recovery-note">Si tu compra está aprobada, enviaremos un enlace a ese correo para recuperar el acceso.</p>
+    <div class="section-intro">
+      <div class="eyebrow">NO SE TRATA SOLO DE INSTALAR</div>
+      <h2>También necesitás herramientas para hacer crecer tu trabajo.</h2>
+      <p>Una buena instalación es el comienzo. La organización, la presentación y la atención al cliente también forman parte de un negocio profesional.</p>
+    </div>
+    <div class="value-grid">
+      <article class="value-card"><span class="value-number">01</span><h3>Presentá mejor tus trabajos</h3><p>Ordená tus servicios y prepará presupuestos claros, con equipos, mano de obra y condiciones.</p></article>
+      <article class="value-card"><span class="value-number">02</span><h3>Organizá la búsqueda de clientes</h3><p>Usá recursos de comunicación y captación para dar seguimiento a las consultas.</p></article>
+      <article class="value-card"><span class="value-number">03</span><h3>Trabajá con más método</h3><p>Apoyate en checklists, guiones y prompts de IA para agilizar tareas habituales.</p></article>
+    </div>
+  </div>
+</section>
+
+
+
+
+<section class="how-section">
+  <div class="wrap">
+    <div class="section-intro">
+      <div class="eyebrow">SIMPLE Y APLICABLE</div>
+      <h2>Un kit para consultar mientras trabajás.</h2>
+      <p>No necesitás incorporar todo de golpe. Elegí el recurso que necesitás y adaptalo a tu forma de trabajar.</p>
+    </div>
+    <div class="how-grid">
+      <div class="how-step"><span>1</span><h3>Descargá</h3><p>Accedé a los siete archivos PDF después de la acreditación del pago.</p></div>
+      <div class="how-step"><span>2</span><h3>Revisá</h3><p>Consultá la guía y los bonos según la necesidad de tu negocio.</p></div>
+      <div class="how-step"><span>3</span><h3>Aplicá</h3><p>Adaptá los modelos, listas y mensajes a tus servicios y clientes.</p></div>
     </div>
   </div>
 </section>
@@ -218,20 +366,53 @@
 <section id="comprar" class="purchase-section">
   <div class="wrap">
     <div class="purchase-panel">
-      <span class="purchase-tag">Primera vez en la tienda</span>
-      <h2>Comprá tu pack completo</h2>
-      <p class="purchase-copy">Ingresá tu correo electrónico para identificar tu compra y recibir el acceso a los siete materiales.</p>
+      <span class="purchase-tag">Pack digital completo · 7 materiales</span>
+      <h2>Empezá a profesionalizar tu negocio</h2>
+      <p class="purchase-copy">Recibí la guía principal y los seis bonos en formato PDF. Un solo pago, sin suscripción. El acceso se habilita cuando Mercado Pago confirma el pago.</p><div class="offer-price"><span>Precio del pack completo</span><strong>$14.900 <small>ARS</small></strong><em>1 guía + 6 bonos · 7 PDF</em></div>
       <div class="purchase-form">
         <label for="buyer-email">Correo electrónico para la compra</label>
         <input id="buyer-email" type="email" autocomplete="email" placeholder="tu@email.com" required>
-        <button id="buy-button" class="btn primary" type="button">Comprar los 7 materiales · $14.900 ARS</button>
+        <button id="buy-button" class="btn primary" type="button">COMPRAR EL PACK · $14.900 ARS</button>
       </div>
       <div id="checkout-status" class="status" role="status" aria-live="polite" hidden></div>
       <p class="purchase-note">El acceso se habilita una vez que Mercado Pago confirma el pago.</p>
     </div>
   </div>
 </section>
+<section id="recuperar" class="recovery-section">
+  <div class="wrap">
+    <div class="recovery-panel">
+      <div class="recovery-head">
+        <span class="recovery-tag">¿YA COMPRASTE?</span>
+        <h2>Recuperá tus 7 materiales</h2>
+        <p class="recovery-copy">Esta opción es solamente para quienes ya pagaron y quieren volver a descargar la guía y los seis bonos. No necesitás volver a comprar.</p>
+      </div>
+      <div class="recovery-form">
+        <label for="recovery-email">Ingresá el correo que usaste al realizar la compra</label>
+        <input id="recovery-email" type="email" autocomplete="email" placeholder="El mismo correo que usaste al pagar" required>
+        <button id="recovery-button" class="btn recovery-action" type="button">YA COMPRÉ · ENVIAR MI ENLACE DE ACCESO</button>
+      </div>
+      <div id="recovery-status" class="recovery-status" role="status" aria-live="polite" hidden></div>
+      <p class="recovery-note">Si tu compra está aprobada, enviaremos un enlace a ese correo para recuperar el acceso.</p>
+    </div>
+  </div>
+</section>
 
+
+<section class="faq-section" id="preguntas">
+  <div class="wrap faq-wrap">
+    <div class="section-intro">
+      <div class="eyebrow">ANTES DE COMPRAR</div>
+      <h2>Preguntas frecuentes</h2>
+    </div>
+    <details><summary>¿Qué recibo exactamente?</summary><p>Recibís siete archivos PDF: una guía principal sobre el negocio de la seguridad electrónica y seis materiales complementarios sobre checklist, proveedores y materiales, presupuestos, clientes y Meta Ads, WhatsApp y prompts de ChatGPT.</p></details>
+    <details><summary>¿Es un curso con clases o videos?</summary><p>No. Es un pack de materiales digitales en PDF para leer, consultar y adaptar a tu actividad.</p></details>
+    <details><summary>¿Para quién está pensado?</summary><p>Para instaladores, técnicos independientes y personas que están desarrollando un emprendimiento de cámaras, alarmas y soluciones de seguridad electrónica.</p></details>
+    <details><summary>¿Cómo puedo pagar?</summary><p>El pago se procesa mediante Mercado Pago. La compra se realiza por el importe indicado en esta página.</p></details>
+    <details><summary>¿Cuándo recibo los materiales?</summary><p>Cuando Mercado Pago confirma el pago, se habilita el acceso a los siete archivos y se envía la información al correo electrónico ingresado durante la compra.</p></details>
+    <details><summary>Ya compré, ¿cómo recupero mis archivos?</summary><p>Usá el apartado “¿Ya compraste?” que está debajo del botón de compra. Ingresá el mismo correo que utilizaste al pagar y solicitá tu enlace de acceso.</p></details>
+  </div>
+</section>
 <section id="ayuda"><div class="wrap"><div class="card" style="text-align:center;padding:30px"><div class="eyebrow">Atención al comprador</div><h2>¿Tuviste un problema con el pago o la entrega?</h2><p class="lead" style="margin:0 auto 20px">¿Tu pago se realizó pero no recibiste los materiales, o tuviste algún inconveniente durante la compra? Escribinos a <strong>solucionesntec@gmail.com</strong>. En el correo, indicá la dirección que usaste al comprar y <strong>adjuntá el comprobante de pago de Mercado Pago</strong>. No necesitás informar ningún número de transacción.</p><a class="btn primary" href="mailto:solucionesntec@gmail.com?subject=Ayuda%20con%20mi%20compra%20-%20Pack%20Seguridad%20Electr%C3%B3nica&body=Hola%2C%20necesito%20ayuda%20con%20mi%20compra%20del%20Pack%20de%20Seguridad%20Electr%C3%B3nica.%0A%0ACorreo%20utilizado%20en%20la%20compra%3A%20%0A%0AAdjunto%20el%20comprobante%20de%20pago%20de%20Mercado%20Pago.">Enviar correo y adjuntar comprobante</a></div></div></section>
 </main>
 <footer><div class="wrap">© <span id="year"></span> Soluciones NTEC · Seguridad y tecnología · Soporte: <a href="mailto:solucionesntec@gmail.com" style="color:var(--gold)">solucionesntec@gmail.com</a></div></footer>
