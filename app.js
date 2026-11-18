@@ -127,7 +127,7 @@
   if (recoveryButton) {
     recoveryButton.addEventListener("click", async () => {
       const email = (recoveryEmailInput?.value || "").trim().toLowerCase();
-      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+      if (!/^[^\s@]+@[^\s@]+\\.[^\s@]+$/.test(email)) {
         if (recoveryStatus) {
           recoveryStatus.textContent = "Ingresá una dirección de correo válida.";
           recoveryStatus.hidden = false;
