@@ -333,11 +333,13 @@ Deno.serve(async (req) => {
       order.meta_event_source_url
     ) {
       const claimTime = new Date().toISOString();
+      const claimExpiredBefore = new Date(Date.now() - 5 * 60 * 1000).toISOString();
       const { data: claimedOrder, error: claimError } = await supabase
         .from("orders")
-        .update({ meta_purchase_sent_at: claimTime })
+        .update({ meta_purchase_claimed_at: claimTime })
         .eq("id", orderId)
         .is("meta_purchase_sent_at", null)
+        .or("meta_purchase_claimed_at.is.null,meta_purchase_claimed_at.lt." + claimExpiredBefore)
         .select("id")
         .maybeSingle();
 
@@ -364,12 +366,19 @@ Deno.serve(async (req) => {
             orderId,
             eventTime: approvedTime,
           });
+          await supabase.from("orders")
+            .update({
+              meta_purchase_sent_at: new Date().toISOString(),
+              meta_purchase_claimed_at: null,
+            })
+            .eq("id", orderId)
+            .eq("meta_purchase_claimed_at", claimTime);
           console.info("Meta Purchase event accepted", { orderId });
         } catch (metaError) {
           await supabase.from("orders")
-            .update({ meta_purchase_sent_at: null })
+            .update({ meta_purchase_claimed_at: null })
             .eq("id", orderId)
-            .eq("meta_purchase_sent_at", claimTime);
+            .eq("meta_purchase_claimed_at", claimTime);
           console.error("Meta Purchase delivery failed; retry is possible", {
             orderId,
             error: metaError instanceof Error ? metaError.message : "Unknown Meta error",
