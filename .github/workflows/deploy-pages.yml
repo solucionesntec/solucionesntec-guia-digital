@@ -7,6 +7,8 @@ on:
       - 'index.html'
       - 'config.js'
       - 'app.js'
+      - 'consent.js'
+      - 'privacidad.html'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
@@ -30,7 +32,7 @@ jobs:
       - name: Prepare public site files
         run: |
           mkdir site
-          cp index.html config.js app.js site/
+          cp index.html config.js app.js consent.js privacidad.html site/
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
