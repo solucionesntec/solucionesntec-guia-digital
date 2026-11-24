@@ -213,14 +213,14 @@
         const metaCheckout = window.NTECAnalytics
           ? window.NTECAnalytics.prepareCheckoutEvent()
           : null;
-        if (metaCheckout && window.NTECAnalytics) {
-          window.NTECAnalytics.trackInitiateCheckout(metaCheckout);
-        }
         const result = await callFunction("create-checkout", {
           email,
           ...(metaCheckout ? metaCheckout : {})
         });
         if (!result.init_point) throw new Error("Mercado Pago no devolvió el enlace de pago.");
+        if (metaCheckout && window.NTECAnalytics) {
+          window.NTECAnalytics.trackInitiateCheckout(metaCheckout);
+        }
         window.location.assign(result.init_point);
       } catch (error) {
         show(error.message, true);
