@@ -205,11 +205,13 @@ Deno.serve(async (req) => {
       order.meta_event_source_url
     ) {
       const claimTime = new Date().toISOString();
+      const claimExpiredBefore = new Date(Date.now() - 5 * 60 * 1000).toISOString();
       const { data: claimedOrder, error: claimError } = await supabase
         .from("orders")
-        .update({ meta_purchase_sent_at: claimTime })
+        .update({ meta_purchase_claimed_at: claimTime })
         .eq("id", order_id)
         .is("meta_purchase_sent_at", null)
+        .or("meta_purchase_claimed_at.is.null,meta_purchase_claimed_at.lt." + claimExpiredBefore)
         .select("id")
         .maybeSingle();
 
@@ -235,14 +237,21 @@ Deno.serve(async (req) => {
             currency: String(order.currency),
             orderId: order_id,
           });
+          await supabase.from("orders")
+            .update({
+              meta_purchase_sent_at: new Date().toISOString(),
+              meta_purchase_claimed_at: null,
+            })
+            .eq("id", order_id)
+            .eq("meta_purchase_claimed_at", claimTime);
           console.info("Meta Purchase event accepted from delivery reconciliation", {
             orderId: order_id,
           });
         } catch (metaError) {
           await supabase.from("orders")
-            .update({ meta_purchase_sent_at: null })
+            .update({ meta_purchase_claimed_at: null })
             .eq("id", order_id)
-            .eq("meta_purchase_sent_at", claimTime);
+            .eq("meta_purchase_claimed_at", claimTime);
           console.error("Meta Purchase from delivery flow failed; retry is possible", {
             orderId: order_id,
             error: metaError instanceof Error ? metaError.message : "Unknown Meta error",
