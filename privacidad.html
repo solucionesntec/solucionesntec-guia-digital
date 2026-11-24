@@ -54,11 +54,11 @@ footer{border-top:1px solid var(--line);padding:24px 0;color:var(--muted);font-s
     <li><strong>Correo electrónico:</strong> se solicita para crear e identificar el pedido, vincular el pago y enviar el acceso a los siete archivos PDF o asistencia de compra.</li>
     <li><strong>Datos del pedido:</strong> identificador de pedido, importe, moneda, preferencia e identificador de pago, estado y fechas de creación/aprobación. Se usan para procesar y verificar la operación, entregar el producto y atender reclamos.</li>
     <li><strong>Almacenamiento técnico del navegador:</strong> la tienda utiliza almacenamiento local o de sesión para recordar el correo durante el proceso de pago y para conservar tu elección de privacidad.</li>
-    <li><strong>Medición opcional de Meta:</strong> únicamente si aceptás la medición, se activa Meta Pixel. Puede transmitir a Meta datos técnicos y de navegación, como dirección IP, navegador/dispositivo, URL visitada, referencia de origen y cookies o identificadores de Meta (por ejemplo, _fbp y _fbc), además de eventos como visita e inicio de pago. Estos datos se utilizan para medir campañas y mejorar su rendimiento.</li>
+    <li><strong>Medición opcional de Meta:</strong> únicamente si aceptás la medición, se activa Meta Pixel en el navegador y, cuando iniciás un pago o se confirma una compra vinculada a ese consentimiento, la API de conversiones de Meta en el servidor. Los eventos pueden incluir nombre y momento del evento, importe y moneda, URL de origen, dirección IP, navegador/dispositivo, identificadores de cookies de Meta (_fbp y _fbc) y correo electrónico transformado mediante SHA-256 antes de enviarlo. Se transmiten eventos de visita, inicio de pago y compra confirmada para medir campañas y mejorar su rendimiento. La tienda no envía estos eventos de conversión si no existe consentimiento registrado para ese pedido.</li>
   </ul>
 
   <h2>3. Qué pasa si rechazás las cookies opcionales</h2>
-  <p>La medición publicitaria mediante Meta Pixel es opcional. Si la rechazás, el píxel no se activa desde este sitio. Podés comprar, pagar mediante Mercado Pago y recibir los materiales igualmente. Podés cambiar tu decisión en cualquier momento desde el enlace «Configurar cookies» del pie de la tienda.</p>
+  <p>La medición publicitaria mediante Meta Pixel y API de conversiones es opcional. Si la rechazás, no se activa el píxel ni se guardan datos de atribución para enviar eventos de ese pedido a Meta. Podés comprar, pagar mediante Mercado Pago y recibir los materiales igualmente. Podés cambiar tu decisión en cualquier momento desde el enlace «Configurar cookies» del pie de la tienda.</p>
 
   <h2>4. Proveedores y destinatarios</h2>
   <p>Para operar la tienda utilizamos proveedores tecnológicos que reciben la información necesaria para prestar sus servicios:</p>
@@ -93,7 +93,7 @@ footer{border-top:1px solid var(--line);padding:24px 0;color:var(--muted);font-s
   <div class="privacy-consent-inner">
     <div class="privacy-consent-copy">
       <strong>Tu privacidad importa</strong>
-      <p>Con tu permiso, activamos Meta Pixel para medir visitas e inicios de compra. Si rechazás, la compra y la entrega de los PDF siguen disponibles.</p>
+      <p>Con tu permiso, activamos Meta Pixel y la API de conversiones para medir visitas, inicios de pago y compras confirmadas. Si rechazás, la compra y la entrega de los PDF siguen disponibles.</p>
       <a href="privacidad.html">Leer la política de privacidad y cookies</a>
     </div>
     <div class="privacy-consent-actions" id="privacy-main-actions">
@@ -112,5 +112,5 @@ footer{border-top:1px solid var(--line);padding:24px 0;color:var(--muted);font-s
     </div>
   </div>
 </aside>
-<script src="consent.js?v=privacy-20261124"></script>
+<script src="consent.js?v=meta-capi-20261124"></script>
 </body></html>

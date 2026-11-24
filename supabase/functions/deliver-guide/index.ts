@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendMetaEvent } from "../_shared/meta.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": Deno.env.get("SITE_URL") ? new URL(Deno.env.get("SITE_URL")!).origin : "*",
@@ -173,7 +174,7 @@ Deno.serve(async (req) => {
     );
     const { data: order, error } = await supabase
       .from("orders")
-      .select("id,status,buyer_email,amount,currency,mp_preference_id,mp_payment_id")
+      .select("id,status,buyer_email,amount,currency,mp_preference_id,mp_payment_id,meta_consent_at,meta_fbp,meta_fbc,meta_client_ip_address,meta_client_user_agent,meta_event_source_url,meta_purchase_sent_at")
       .eq("id", order_id)
       .maybeSingle();
 
@@ -192,6 +193,70 @@ Deno.serve(async (req) => {
       const verification = await reconcileApprovedPayment(supabase, order, payment_id);
       if (!verification.ok) {
         return json({ error: verification.error }, verification.status);
+      }
+    }
+
+    // The browser return can reconcile a valid payment before the webhook arrives.
+    // Send Purchase here as a fallback, using the same atomic claim and event ID.
+    if (
+      order.meta_consent_at &&
+      !order.meta_purchase_sent_at &&
+      order.meta_client_user_agent &&
+      order.meta_event_source_url
+    ) {
+      const claimTime = new Date().toISOString();
+      const claimExpiredBefore = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data: claimedOrder, error: claimError } = await supabase
+        .from("orders")
+        .update({ meta_purchase_claimed_at: claimTime })
+        .eq("id", order_id)
+        .is("meta_purchase_sent_at", null)
+        .or("meta_purchase_claimed_at.is.null,meta_purchase_claimed_at.lt." + claimExpiredBefore)
+        .select("id")
+        .maybeSingle();
+
+      if (claimError) {
+        console.error("Could not claim Meta Purchase event from delivery flow", {
+          orderId: order_id,
+          claimError,
+        });
+      } else if (claimedOrder) {
+        try {
+          await sendMetaEvent({
+            eventName: "Purchase",
+            eventId: "ntec-purchase-" + order_id,
+            email: String(order.buyer_email),
+            eventSourceUrl: String(order.meta_event_source_url),
+            clientUserAgent: String(order.meta_client_user_agent),
+            clientIpAddress: order.meta_client_ip_address
+              ? String(order.meta_client_ip_address)
+              : null,
+            fbp: order.meta_fbp ? String(order.meta_fbp) : null,
+            fbc: order.meta_fbc ? String(order.meta_fbc) : null,
+            value: Number(order.amount),
+            currency: String(order.currency),
+            orderId: order_id,
+          });
+          await supabase.from("orders")
+            .update({
+              meta_purchase_sent_at: new Date().toISOString(),
+              meta_purchase_claimed_at: null,
+            })
+            .eq("id", order_id)
+            .eq("meta_purchase_claimed_at", claimTime);
+          console.info("Meta Purchase event accepted from delivery reconciliation", {
+            orderId: order_id,
+          });
+        } catch (metaError) {
+          await supabase.from("orders")
+            .update({ meta_purchase_claimed_at: null })
+            .eq("id", order_id)
+            .eq("meta_purchase_claimed_at", claimTime);
+          console.error("Meta Purchase from delivery flow failed; retry is possible", {
+            orderId: order_id,
+            error: metaError instanceof Error ? metaError.message : "Unknown Meta error",
+          });
+        }
       }
     }
 

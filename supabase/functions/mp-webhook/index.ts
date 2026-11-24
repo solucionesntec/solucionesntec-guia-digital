@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendMetaEvent } from "../_shared/meta.ts";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -245,7 +246,7 @@ Deno.serve(async (req) => {
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
-      .select("id, amount, currency, status, buyer_email, mp_payment_id, mp_preference_id")
+      .select("id, amount, currency, status, buyer_email, mp_payment_id, mp_preference_id, meta_consent_at, meta_fbp, meta_fbc, meta_client_ip_address, meta_client_user_agent, meta_event_source_url, meta_purchase_sent_at")
       .eq("id", orderId)
       .maybeSingle();
 
@@ -320,6 +321,74 @@ Deno.serve(async (req) => {
       .eq("id", orderId);
 
     if (updateError) throw updateError;
+
+    // Send Purchase only for orders with recorded opt-in consent.
+    // Claim the row atomically so duplicate Mercado Pago notifications do not
+    // send the same event concurrently. A stable event_id lets Meta deduplicate
+    // retries if the network fails after Meta has accepted an event.
+    if (
+      order.meta_consent_at &&
+      !order.meta_purchase_sent_at &&
+      order.meta_client_user_agent &&
+      order.meta_event_source_url
+    ) {
+      const claimTime = new Date().toISOString();
+      const claimExpiredBefore = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data: claimedOrder, error: claimError } = await supabase
+        .from("orders")
+        .update({ meta_purchase_claimed_at: claimTime })
+        .eq("id", orderId)
+        .is("meta_purchase_sent_at", null)
+        .or("meta_purchase_claimed_at.is.null,meta_purchase_claimed_at.lt." + claimExpiredBefore)
+        .select("id")
+        .maybeSingle();
+
+      if (claimError) {
+        console.error("Could not claim Meta Purchase event", { orderId, claimError });
+      } else if (claimedOrder) {
+        try {
+          const parsedApprovedTime = payment.date_approved
+            ? new Date(payment.date_approved).getTime()
+            : Number.NaN;
+          const approvedTime = Number.isFinite(parsedApprovedTime)
+            ? Math.floor(parsedApprovedTime / 1000)
+            : Math.floor(Date.now() / 1000);
+          await sendMetaEvent({
+            eventName: "Purchase",
+            eventId: "ntec-purchase-" + orderId,
+            email: String(order.buyer_email),
+            eventSourceUrl: String(order.meta_event_source_url),
+            clientUserAgent: String(order.meta_client_user_agent),
+            clientIpAddress: order.meta_client_ip_address
+              ? String(order.meta_client_ip_address)
+              : null,
+            fbp: order.meta_fbp ? String(order.meta_fbp) : null,
+            fbc: order.meta_fbc ? String(order.meta_fbc) : null,
+            value: 14900,
+            currency: "ARS",
+            orderId,
+            eventTime: approvedTime,
+          });
+          await supabase.from("orders")
+            .update({
+              meta_purchase_sent_at: new Date().toISOString(),
+              meta_purchase_claimed_at: null,
+            })
+            .eq("id", orderId)
+            .eq("meta_purchase_claimed_at", claimTime);
+          console.info("Meta Purchase event accepted", { orderId });
+        } catch (metaError) {
+          await supabase.from("orders")
+            .update({ meta_purchase_claimed_at: null })
+            .eq("id", orderId)
+            .eq("meta_purchase_claimed_at", claimTime);
+          console.error("Meta Purchase delivery failed; retry is possible", {
+            orderId,
+            error: metaError instanceof Error ? metaError.message : "Unknown Meta error",
+          });
+        }
+      }
+    }
 
     // Apps Script delivery is idempotent. A failure returns 500 so Mercado Pago can retry.
     const appsScriptUrl = Deno.env.get("APPS_SCRIPT_URL") || "";

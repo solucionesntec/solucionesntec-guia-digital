@@ -12,6 +12,7 @@ export interface MetaEventInput {
   value: number;
   currency: string;
   orderId?: string;
+  eventTime?: number;
 }
 
 async function sha256Hex(value: string): Promise<string> {
@@ -66,7 +67,7 @@ export async function sendMetaEvent(input: MetaEventInput) {
 
   const event = {
     event_name: input.eventName,
-    event_time: Math.floor(Date.now() / 1000),
+    event_time: input.eventTime ?? Math.floor(Date.now() / 1000),
     event_id: input.eventId,
     action_source: "website",
     event_source_url: cleanEventUrl(input.eventSourceUrl),
