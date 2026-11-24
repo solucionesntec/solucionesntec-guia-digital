@@ -42,6 +42,8 @@ Deno.serve(async (req) => {
       try {
         const candidate = new URL(body.meta_event_source_url);
         if (candidate.origin === siteOrigin && candidate.protocol === "https:") {
+          candidate.search = "";
+          candidate.hash = "";
           eventSourceUrl = candidate.toString();
         }
       } catch {
