@@ -30,9 +30,62 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+    // Save Meta attribution data only when the visitor explicitly opted in.
+    const metaConsent = body.meta_consent === true;
+    const suppliedEventId = String(body.meta_event_id || "").trim();
+    const validEventId = /^[A-Za-z0-9._:-]{1,100}$/.test(suppliedEventId);
+    const metaEventId = metaConsent && validEventId ? suppliedEventId : null;
+    const siteOrigin = new URL(SITE_URL).origin;
+    let eventSourceUrl = SITE_URL;
+    if (metaConsent && typeof body.meta_event_source_url === "string") {
+      try {
+        const candidate = new URL(body.meta_event_source_url);
+        if (candidate.origin === siteOrigin && candidate.protocol === "https:") {
+          eventSourceUrl = candidate.toString();
+        }
+      } catch {
+        // Fall back to the configured storefront URL.
+      }
+    }
+
+    const cookieValue = (value: unknown, pattern: RegExp) => {
+      const text = String(value || "").trim();
+      return text.length <= 255 && pattern.test(text) ? text : null;
+    };
+    const metaFbp = metaConsent
+      ? cookieValue(body.meta_fbp, /^fb\.1\.\d{8,16}\.\d+$/)
+      : null;
+    const metaFbc = metaConsent
+      ? cookieValue(body.meta_fbc, /^fb\.1\.\d{8,16}\.[A-Za-z0-9_-]+$/)
+      : null;
+    const userAgent = metaConsent
+      ? String(req.headers.get("user-agent") || "").slice(0, 500)
+      : null;
+    const forwardedIp = req.headers.get("cf-connecting-ip") ||
+      (req.headers.get("x-forwarded-for") || "").split(",")[0].trim();
+    const clientIp = metaConsent && forwardedIp && forwardedIp.length <= 64
+      ? forwardedIp
+      : null;
+    const consentFields = metaConsent ? {
+      meta_fbp: metaFbp,
+      meta_fbc: metaFbc,
+      meta_client_ip_address: clientIp,
+      meta_client_user_agent: userAgent,
+      meta_event_source_url: eventSourceUrl,
+      meta_consent_at: new Date().toISOString(),
+      meta_consent_version: "2026-11-24",
+      meta_initiate_checkout_event_id: metaEventId,
+    } : {};
+
     const { data: order, error: insertError } = await supabase
       .from("orders")
-      .insert({ buyer_email: email, amount: 14900, currency: "ARS" })
+      .insert({
+        buyer_email: email,
+        amount: 14900,
+        currency: "ARS",
+        ...consentFields,
+      })
       .select("id")
       .single();
     if (insertError || !order) throw insertError || new Error("No se pudo crear el pedido.");
@@ -75,6 +128,36 @@ Deno.serve(async (req) => {
     }
 
     await supabase.from("orders").update({ mp_preference_id: String(preference.id) }).eq("id", order.id);
+
+    // Send the server event with the same event_id used by the browser Pixel.
+    // Analytics failures never interrupt a valid payment checkout.
+    if (metaConsent && metaEventId && userAgent) {
+      try {
+        const { sendMetaEvent } = await import("../_shared/meta.ts");
+        await sendMetaEvent({
+          eventName: "InitiateCheckout",
+          eventId: metaEventId,
+          email,
+          eventSourceUrl,
+          clientUserAgent: userAgent,
+          clientIpAddress: clientIp,
+          fbp: metaFbp,
+          fbc: metaFbc,
+          value: 14900,
+          currency: "ARS",
+          orderId: order.id,
+        });
+        await supabase.from("orders")
+          .update({ meta_initiate_checkout_sent_at: new Date().toISOString() })
+          .eq("id", order.id);
+      } catch (metaError) {
+        console.error("Meta InitiateCheckout delivery failed", {
+          orderId: order.id,
+          error: metaError instanceof Error ? metaError.message : "Unknown Meta error",
+        });
+      }
+    }
+
     return json({ init_point: preference.init_point, order_id: order.id });
   } catch (error) {
     console.error(error);
