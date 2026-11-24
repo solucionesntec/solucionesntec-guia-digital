@@ -347,8 +347,11 @@ Deno.serve(async (req) => {
         console.error("Could not claim Meta Purchase event", { orderId, claimError });
       } else if (claimedOrder) {
         try {
-          const approvedTime = payment.date_approved
-            ? Math.floor(new Date(payment.date_approved).getTime() / 1000)
+          const parsedApprovedTime = payment.date_approved
+            ? new Date(payment.date_approved).getTime()
+            : Number.NaN;
+          const approvedTime = Number.isFinite(parsedApprovedTime)
+            ? Math.floor(parsedApprovedTime / 1000)
             : Math.floor(Date.now() / 1000);
           await sendMetaEvent({
             eventName: "Purchase",
