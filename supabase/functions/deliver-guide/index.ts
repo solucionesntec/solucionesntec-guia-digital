@@ -294,6 +294,15 @@ Deno.serve(async (req) => {
       expires_in_seconds: 1200,
       email_sent: emailDelivery.ok,
       email_error: emailDelivery.ok ? null : emailDelivery.error,
+      // Only expose a browser Purchase event for orders with saved opt-in consent.
+      // This stable ID is identical to the one used by Meta Conversions API.
+      meta_purchase_event: order.meta_consent_at
+        ? {
+            event_id: "ntec-purchase-" + order.id,
+            value: Number(order.amount),
+            currency: String(order.currency),
+          }
+        : null,
     });
   } catch (error) {
     console.error(error);

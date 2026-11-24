@@ -4,6 +4,7 @@
   const PIXEL_ID = "9697363423621125";
   const CONSENT_KEY = "ntec_meta_consent_v1";
   const CONSENT_MAX_AGE_DAYS = 180;
+  const sentPurchaseEvents = new Set();
   let pageViewSentThisLoad = false;
 
   const byId = (id) => document.getElementById(id);
@@ -150,6 +151,44 @@
         currency: "ARS",
         num_items: 7
       }, { eventID: payload.meta_event_id });
+    },
+    trackPurchase: (payload) => {
+      if (
+        getChoice() !== "accepted" ||
+        typeof window.fbq !== "function" ||
+        !payload ||
+        typeof payload.event_id !== "string" ||
+        !payload.event_id.startsWith("ntec-purchase-")
+      ) return false;
+
+      const value = Number(payload.value);
+      const currency = String(payload.currency || "").toUpperCase();
+      if (!Number.isFinite(value) || value <= 0 || !/^[A-Z]{3}$/.test(currency)) return false;
+
+      const storageKey = "ntec_meta_purchase_browser_" + payload.event_id;
+      try {
+        if (localStorage.getItem(storageKey) === "sent") return false;
+      } catch {
+        // Continue with in-memory deduplication when browser storage is unavailable.
+      }
+      if (sentPurchaseEvents.has(payload.event_id)) return false;
+
+      window.fbq("track", "Purchase", {
+        value,
+        currency,
+        content_name: "El negocio de la seguridad electrónica",
+        content_ids: ["ntec-guia-seguridad-electronica"],
+        content_type: "product",
+        num_items: 1
+      }, { eventID: payload.event_id });
+
+      sentPurchaseEvents.add(payload.event_id);
+      try {
+        localStorage.setItem(storageKey, "sent");
+      } catch {
+        // The in-memory Set prevents repeats during this page session.
+      }
+      return true;
     }
   };
 })();

@@ -46,6 +46,11 @@
         if (paymentId) payload.payment_id = paymentId;
         const result = await callFunction("deliver-guide", payload);
         if (Array.isArray(result.downloads) && result.downloads.length === 7) {
+          // Pixel Purchase is emitted only after the server has verified the payment
+          // and successfully prepared all seven download links. Its event_id matches CAPI.
+          if (result.meta_purchase_event && window.NTECAnalytics) {
+            window.NTECAnalytics.trackPurchase(result.meta_purchase_event);
+          }
           if (result.email_sent) {
             show("Compra validada. También enviamos un correo con los siete materiales. Revisá Recibidos y Spam.");
           } else {
