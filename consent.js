@@ -14,8 +14,17 @@
 
   function getChoice() {
     try {
-      const value = localStorage.getItem(CONSENT_KEY);
-      return value === "accepted" || value === "rejected" ? value : null;
+      const raw = localStorage.getItem(CONSENT_KEY);
+      if (!raw) return null;
+      const saved = JSON.parse(raw);
+      if (!saved || !["accepted", "rejected"].includes(saved.choice) ||
+          !Number.isFinite(saved.savedAt)) return null;
+      const maxAge = CONSENT_MAX_AGE_DAYS * 86400 * 1000;
+      if (Date.now() - saved.savedAt > maxAge) {
+        localStorage.removeItem(CONSENT_KEY);
+        return null;
+      }
+      return saved.choice;
     } catch {
       return null;
     }
@@ -23,7 +32,10 @@
 
   function saveChoice(value) {
     try {
-      localStorage.setItem(CONSENT_KEY, value);
+      localStorage.setItem(CONSENT_KEY, JSON.stringify({
+        choice: value,
+        savedAt: Date.now()
+      }));
     } catch {
       // If storage is unavailable, the current page still honors the in-memory choice.
     }
