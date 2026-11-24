@@ -38,7 +38,7 @@
     return data;
   }
 
-  async function deliverWhenApproved(id, email, paymentId = "") {
+  async function deliverWhenApproved(id, email, paymentId = "", isPaymentReturn = false) {
     show("Estamos validando tu compra y preparando los materiales…");
     for (let attempt = 0; attempt < 20; attempt++) {
       try {
@@ -48,7 +48,7 @@
         if (Array.isArray(result.downloads) && result.downloads.length === 7) {
           // Pixel Purchase is emitted only after the server has verified the payment
           // and successfully prepared all seven download links. Its event_id matches CAPI.
-          if (result.meta_purchase_event && window.NTECAnalytics) {
+          if (isPaymentReturn && result.meta_purchase_event && window.NTECAnalytics) {
             window.NTECAnalytics.trackPurchase(result.meta_purchase_event);
           }
           if (result.email_sent) {
@@ -106,7 +106,8 @@
       deliverWhenApproved(
         orderId,
         email,
-        params.get("payment_id") || params.get("collection_id") || ""
+        params.get("payment_id") || params.get("collection_id") || "",
+        true
       );
     } else {
       show("Ingresá el mismo correo que usaste al pagar y tocá el botón para recuperar tu compra.", true);
@@ -206,7 +207,8 @@
         deliverWhenApproved(
           orderId,
           email,
-          params.get("payment_id") || params.get("collection_id") || ""
+          params.get("payment_id") || params.get("collection_id") || "",
+          !isAccessLink && paymentStatus === "success"
         );
         return;
       }
